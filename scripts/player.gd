@@ -17,6 +17,8 @@ const SWING_FLASH_TIME := 0.12
 const SHIFT_ATTACK_DELAY := 0.1
 const KNIGHT_COLOR := Color("5fa8e8")
 const MAGE_COLOR := Color("b77cf0")
+const KNIGHT_TEXTURE := preload("res://assets/kenney_tiny_dungeon/Tiles/tile_0096.png")
+const MAGE_TEXTURE := preload("res://assets/kenney_tiny_dungeon/Tiles/tile_0084.png")
 
 @export var move_speed: float = 110.0
 @export var max_health: float = 10.0
@@ -43,6 +45,7 @@ var is_dead: bool = false
 var _attack_timer: float = 0.0
 var _shift_timer: float = 0.0
 var _swing_flash: float = 0.0
+var _facing_left: bool = false
 
 
 func _ready() -> void:
@@ -59,6 +62,8 @@ func _physics_process(delta: float) -> void:
 		shift()
 	var direction := Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down")
 	position += direction * move_speed * _speed_multiplier() * delta
+	if not is_zero_approx(direction.x):
+		_facing_left = direction.x < 0.0
 	_attack_timer -= delta
 	if _attack_timer <= 0.0:
 		_attack_timer = _attack_interval()
@@ -139,7 +144,8 @@ func _nearest_enemy(max_distance: float) -> Node2D:
 
 func _draw() -> void:
 	var color := KNIGHT_COLOR if form == Form.KNIGHT else MAGE_COLOR
-	draw_circle(Vector2.ZERO, BODY_RADIUS, color)
+	var texture := KNIGHT_TEXTURE if form == Form.KNIGHT else MAGE_TEXTURE
+	SpriteDraw.centered(self, texture, _facing_left)
 	if form == Form.KNIGHT and _swing_flash > 0.0:
 		var alpha := _swing_flash / SWING_FLASH_TIME
 		draw_arc(Vector2.ZERO, knight_radius, 0.0, TAU, 40, Color(color, alpha), 2.0)

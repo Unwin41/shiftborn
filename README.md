@@ -4,7 +4,7 @@ A survivors-like where you **shift** between two forms mid-fight: a slow knight 
 
 **[Play in your browser](https://unwin41.github.io/shiftborn/)** · itch.io page coming soon
 
-> Work in progress. Visuals are placeholder shapes until the art pass.
+> Work in progress. Art: Kenney Tiny Dungeon (CC0).
 
 ## Controls
 
