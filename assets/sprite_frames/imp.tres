@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_idle_anim_f0.png" id="1_4jak2"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_idle_anim_f1.png" id="2_wtnor"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_idle_anim_f2.png" id="3_wayb8"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_idle_anim_f3.png" id="4_7j6fy"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_run_anim_f0.png" id="5_65683"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_run_anim_f1.png" id="6_kvhpv"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_run_anim_f2.png" id="7_csd4h"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/imp_run_anim_f3.png" id="8_rf7bv"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_4jak2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_wtnor")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_wayb8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_7j6fy")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_65683")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_kvhpv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_csd4h")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_rf7bv")
+}],
+"loop": 1,
+"name": &"run",
+"speed": 10.0
+}]

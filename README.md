@@ -4,7 +4,7 @@ A survivors-like where you **shift** between two forms mid-fight: a slow knight 
 
 **[Play in your browser](https://unwin41.github.io/shiftborn/)** · itch.io page coming soon
 
-> Work in progress. Art: Kenney Tiny Dungeon (CC0).
+> Work in progress. Art: [16x16 DungeonTileset II](https://0x72.itch.io/dungeontileset-ii) by 0x72 (CC0).
 
 ## Controls
 
@@ -37,6 +37,7 @@ Requires Godot 4.7.2.
 godot --headless --import                                     # first run / CI
 godot --headless -s res://tests/run_tests.gd                  # unit tests
 godot --headless --fixed-fps 60 -s res://tests/smoke_test.gd  # gameplay smoke test
+godot --headless -s res://tools/build_sprite_frames.gd        # rebuild SpriteFrames from assets/0x72_dungeon
 ```
 
 Every push to `main` runs the tests, exports Web/Linux/Windows builds and deploys the web build to GitHub Pages. Pushing a `v*` tag also uploads the builds to itch.io, once the `BUTLER_API_KEY` secret and the `ITCH_GAME` variable are set.

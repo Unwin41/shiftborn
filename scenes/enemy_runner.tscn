@@ -1,12 +1,13 @@
 [gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="1_base"]
-[ext_resource type="Texture2D" path="res://assets/kenney_tiny_dungeon/Tiles/tile_0120.png" id="2_bat"]
+[ext_resource type="SpriteFrames" path="res://assets/sprite_frames/imp.tres" id="2_imp"]
 
 [node name="EnemyRunner" instance=ExtResource("1_base")]
 move_speed = 80.0
 max_health = 1.5
 contact_dps = 1.5
-body_radius = 4.5
-texture = ExtResource("2_bat")
-color = Color(0.95, 0.65, 0.2, 1)
+body_radius = 5.0
+
+[node name="Sprite" parent="." index="0"]
+sprite_frames = ExtResource("2_imp")

@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://addons/horde_kit/spawn_wave.gd" id="5_wave"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="6_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/enemy_runner.tscn" id="7_runner"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_skeleton.tscn" id="8_skeleton"]
 
 [sub_resource type="Resource" id="Resource_opening"]
 script = ExtResource("5_wave")
@@ -26,7 +27,7 @@ batch_size = 3
 
 [sub_resource type="Resource" id="Resource_swarm"]
 script = ExtResource("5_wave")
-enemy_scene = ExtResource("6_enemy")
+enemy_scene = ExtResource("8_skeleton")
 start_time = 120.0
 end_time = 600.0
 interval = 0.8

@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_idle_anim_f0.png" id="1_c4mh0"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_idle_anim_f1.png" id="2_urley"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_idle_anim_f2.png" id="3_oaol3"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_idle_anim_f3.png" id="4_moq25"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_run_anim_f0.png" id="5_nni53"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_run_anim_f1.png" id="6_4fopa"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_run_anim_f2.png" id="7_fcbyt"]
+[ext_resource type="Texture2D" path="res://assets/0x72_dungeon/frames/skelet_run_anim_f3.png" id="8_7krv6"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_c4mh0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_urley")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_oaol3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_moq25")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_nni53")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_4fopa")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_fcbyt")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_7krv6")
+}],
+"loop": 1,
+"name": &"run",
+"speed": 10.0
+}]
