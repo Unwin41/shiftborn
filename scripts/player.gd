@@ -14,7 +14,6 @@ const BOLT_SCENE := preload("res://scenes/bolt.tscn")
 const KNIGHT_FRAMES := preload("res://assets/sprite_frames/knight.tres")
 const MAGE_FRAMES := preload("res://assets/sprite_frames/wizard.tres")
 const BODY_RADIUS := 7.0
-const SWING_FLASH_TIME := 0.12
 const HURT_FLASH_TIME := 0.1
 const HURT_TINT := Color(1.0, 0.45, 0.45)
 ## Sprite scale right after a shift; it eases back to 1.
@@ -22,8 +21,6 @@ const SHIFT_POP_SCALE := 1.35
 const SHIFT_POP_TIME := 0.18
 ## Small delay before the first attack after a shift, so shifting feels snappy.
 const SHIFT_ATTACK_DELAY := 0.1
-const KNIGHT_COLOR := Color("5fa8e8")
-const MAGE_COLOR := Color("b77cf0")
 
 @export var move_speed: float = 110.0
 @export var max_health: float = 10.0
@@ -49,15 +46,19 @@ var is_dead: bool = false
 
 var _attack_timer: float = 0.0
 var _shift_timer: float = 0.0
-var _swing_flash: float = 0.0
 var _hurt_flash: float = 0.0
+## Enemies already hit by the current sword spin (instance id -> true).
+var _sword_hits: Dictionary[int, bool] = {}
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
+@onready var _sword: SpinningSword = $Sword
 
 
 func _ready() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
+	_sword.reach = knight_radius
+	_sword.swept.connect(_on_sword_swept)
 	_apply_form_visuals()
 
 
@@ -66,7 +67,6 @@ func _physics_process(delta: float) -> void:
 		_sprite.pause()
 		return
 	_shift_timer = maxf(_shift_timer - delta, 0.0)
-	_swing_flash = maxf(_swing_flash - delta, 0.0)
 	_update_hurt_flash(delta)
 	if Input.is_action_just_pressed(&"shift_form") and _shift_timer == 0.0:
 		shift()
@@ -77,7 +77,6 @@ func _physics_process(delta: float) -> void:
 	if _attack_timer <= 0.0:
 		_attack_timer = _attack_interval()
 		_attack()
-	queue_redraw()
 
 
 func shift() -> void:
@@ -111,12 +110,16 @@ func _apply_form_visuals() -> void:
 	var animation := _sprite.animation
 	_sprite.sprite_frames = KNIGHT_FRAMES if form == Form.KNIGHT else MAGE_FRAMES
 	_sprite.play(animation if _sprite.sprite_frames.has_animation(animation) else &"idle")
+	_sword.visible = form == Form.KNIGHT
+	if form != Form.KNIGHT:
+		_sword.cancel()
 
 
 func _update_animation(direction: Vector2) -> void:
 	_sprite.play(&"idle" if direction.is_zero_approx() else &"run")
 	if not is_zero_approx(direction.x):
 		_sprite.flip_h = direction.x < 0.0
+		_sword.facing_left = _sprite.flip_h
 
 
 func _update_hurt_flash(delta: float) -> void:
@@ -143,13 +146,25 @@ func _attack() -> void:
 
 
 func _knight_pulse() -> void:
-	_swing_flash = SWING_FLASH_TIME
+	_sword_hits.clear()
+	_sword.spin()
+
+
+## Hits enemies in range whose direction the blade just swept over.
+## Each enemy is hit at most once per spin.
+func _on_sword_swept(from_angle: float, to_angle: float) -> void:
 	for node in get_tree().get_nodes_in_group(enemy_group):
 		var enemy := node as Node2D
 		if enemy == null or not enemy.has_method("take_damage"):
 			continue
-		if enemy.global_position.distance_to(global_position) <= knight_radius:
-			enemy.take_damage(knight_damage)
+		var offset := enemy.global_position - global_position
+		if offset.length() > knight_radius:
+			continue
+		var id := enemy.get_instance_id()
+		if _sword_hits.has(id) or not SpinningSword.angle_in_sweep(offset.angle(), from_angle, to_angle):
+			continue
+		_sword_hits[id] = true
+		enemy.take_damage(knight_damage)
 
 
 func _mage_bolt() -> void:
@@ -175,9 +190,3 @@ func _nearest_enemy(max_distance: float) -> Node2D:
 			best = distance
 			nearest = enemy
 	return nearest
-
-
-func _draw() -> void:
-	if form == Form.KNIGHT and _swing_flash > 0.0:
-		var alpha := _swing_flash / SWING_FLASH_TIME
-		draw_arc(Vector2.ZERO, knight_radius, 0.0, TAU, 40, Color(KNIGHT_COLOR, alpha), 2.0)

@@ -24,8 +24,10 @@ func _initialize() -> void:
 
 func _run_suite(path: String) -> void:
 	var script := load(path) as GDScript
-	if script == null:
-		push_error("Could not load test suite %s" % path)
+	# A script with parse errors still loads but cannot be instantiated;
+	# count it as a failure instead of silently running zero tests.
+	if script == null or not script.can_instantiate():
+		print("  FAIL %s (could not load: parse error?)" % path.get_file())
 		_failed += 1
 		return
 	for method in script.get_script_method_list():
