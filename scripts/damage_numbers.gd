@@ -19,6 +19,7 @@ const OUTLINE_COLOR := Color(0.05, 0.03, 0.08, 0.9)
 ## Numbers start a bit above the enemy's feet.
 const START_OFFSET := Vector2(0.0, -10.0)
 const UNSHADED := preload("res://assets/fx/unshaded.tres")
+const FONT := preload("res://assets/fx/ui_font.tres")
 ## Shaped text is cached per string; damage values repeat a lot.
 const MAX_CACHED_LINES := 64
 
@@ -100,7 +101,7 @@ func _line_for(text: String) -> TextLine:
 	if _lines.size() >= MAX_CACHED_LINES:
 		_lines.clear()
 	line = TextLine.new()
-	line.add_string(text, ThemeDB.fallback_font, FONT_SIZE)
+	line.add_string(text, FONT, FONT_SIZE)
 	line.width = TEXT_WIDTH
 	line.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_lines[text] = line

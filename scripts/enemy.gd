@@ -24,6 +24,11 @@ const NO_FORM := -1
 const RESISTED_DAMAGE := 0.25
 ## Gap between the top of the sprite and the weakness mark.
 const WEAKNESS_MARK_GAP := 4.0
+const SHADOW_TEXTURE := preload("res://assets/ninja/characters/shadow.png")
+## Sprite width the shadow texture is drawn for.
+const SHADOW_BASE_WIDTH := 16.0
+## How far up from the sprite's bottom edge the shadow sits.
+const SHADOW_LIFT := 3.0
 
 @export var move_speed: float = 45.0
 @export var max_health: float = 3.0
@@ -39,6 +44,12 @@ var health: float
 
 var _hit_flash: float = 0.0
 var _weakness_mark: WeaknessMark
+var _facing: StringName = Facing.DOWN
+var _shadow: Node2D
+
+## Opaque area of a frame texture, cached per texture: reading pixels back
+## is slow and hundreds of enemies share a few textures.
+static var _visible_rects: Dictionary[int, Rect2] = {}
 var _knockback_velocity: Vector2 = Vector2.ZERO
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
@@ -76,9 +87,10 @@ func set_resisted_form(form: int) -> void:
 func _ready() -> void:
 	health = max_health
 	set_resisted_form(resisted_form)
-	_sprite.play(&"run")
+	_add_shadow()
+	_sprite.play(Facing.walk_animation(_sprite.sprite_frames, _facing))
 	# Desync animations so a crowd does not bob in lockstep.
-	_sprite.frame = randi() % maxi(_sprite.sprite_frames.get_frame_count(&"run"), 1)
+	_sprite.frame = randi() % maxi(_sprite.sprite_frames.get_frame_count(_sprite.animation), 1)
 
 
 func _physics_process(delta: float) -> void:
@@ -88,8 +100,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var offset := target.global_position - global_position
 	var distance := offset.length()
-	if not is_zero_approx(offset.x):
-		_sprite.flip_h = offset.x < 0.0
+	_face(offset)
 	if distance > body_radius + PLAYER_RADIUS:
 		global_position += offset / distance * move_speed * delta
 	elif target.has_method("take_damage"):
@@ -124,6 +135,8 @@ func _die() -> void:
 	set_physics_process(false)
 	if _weakness_mark != null:
 		_weakness_mark.hide()
+	if _shadow != null:
+		_shadow.hide()
 	var tween := create_tween().set_parallel()
 	tween.tween_property(_sprite, ^"scale", DEATH_SCALE, DEATH_TIME).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_sprite, ^"modulate", Color(HIT_FLASH_MODULATE, 0.0), DEATH_TIME)
@@ -144,11 +157,67 @@ func _update_knockback(delta: float) -> void:
 		_knockback_velocity = Vector2.ZERO
 
 
-## Just above the sprite's top edge, whatever its size and scale.
+## Turns toward [param offset]: four-way animations when the sprite has
+## them, a horizontal flip otherwise (boss strips).
+func _face(offset: Vector2) -> void:
+	var frames := _sprite.sprite_frames
+	if not Facing.is_directional(frames):
+		if not is_zero_approx(offset.x):
+			_sprite.flip_h = offset.x < 0.0
+		return
+	var next := Facing.from_vector(offset, _facing)
+	if next != _facing:
+		_facing = next
+		var frame := _sprite.frame
+		_sprite.play(Facing.walk_animation(frames, _facing))
+		_sprite.frame = frame
+
+
+## A shadow under the feet: the pixel shadow for small sprites, a soft
+## ellipse for big ones (a scaled pixel shadow turns into a black block).
+func _add_shadow() -> void:
+	var bounds := _visible_bounds()
+	var width := bounds.size.x
+	var feet := bounds.end.y
+	if width > SHADOW_BASE_WIDTH * 1.5:
+		_shadow = EllipseShadow.create(width, Vector2(0.0, feet - width * 0.12))
+	else:
+		var sprite_shadow := Sprite2D.new()
+		sprite_shadow.texture = SHADOW_TEXTURE
+		sprite_shadow.position = Vector2(0.0, feet - SHADOW_LIFT)
+		sprite_shadow.show_behind_parent = true
+		_shadow = sprite_shadow
+	add_child(_shadow)
+
+
+func _first_frame() -> Texture2D:
+	return _sprite.sprite_frames.get_frame_texture(_sprite.animation, 0)
+
+
+## Just above the top of the drawn pixels, whatever the sprite's size.
 func _weakness_mark_offset() -> Vector2:
-	var frame := _sprite.sprite_frames.get_frame_texture(&"run", 0)
-	var half_height := frame.get_height() * 0.5 * _sprite.scale.y if frame != null else 8.0
-	return Vector2(0.0, _sprite.position.y - half_height - WEAKNESS_MARK_GAP)
+	return Vector2(0.0, _visible_bounds().position.y - WEAKNESS_MARK_GAP)
+
+
+## The non-transparent part of the first frame, in this node's space.
+## Frames have empty margins (16 px cells, 82 px boss strips), so the
+## full frame size would float marks and shadows away from the body.
+func _visible_bounds() -> Rect2:
+	var frame := _first_frame()
+	if frame == null:
+		return Rect2(-8.0, -8.0, 16.0, 16.0)
+	var used := Rect2(Vector2.ZERO, frame.get_size())
+	var key := frame.get_instance_id()
+	if _visible_rects.has(key):
+		used = _visible_rects[key]
+	else:
+		# get_image() can be null without a real renderer (headless tests).
+		var image := frame.get_image()
+		if image != null and not image.is_empty():
+			used = Rect2(image.get_used_rect())
+		_visible_rects[key] = used
+	var top_left := (used.position - frame.get_size() * 0.5) * _sprite.scale + _sprite.position + _sprite.offset
+	return Rect2(top_left, used.size * _sprite.scale)
 
 
 func _update_hit_flash(delta: float) -> void:

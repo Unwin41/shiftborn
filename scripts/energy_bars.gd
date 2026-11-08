@@ -14,8 +14,8 @@ const FONT_SIZE := 8
 const BACKGROUND := Color(0.06, 0.05, 0.1, 0.85)
 const FRAME_IDLE := Color(0.35, 0.32, 0.45)
 const IDLE_ALPHA := 0.4
-const KNIGHT_ICON := preload("res://assets/0x72_dungeon/frames/weapon_axe.png")
-const MAGE_ICON := preload("res://assets/0x72_dungeon/frames/weapon_green_magic_staff.png")
+const KNIGHT_ICON := preload("res://assets/ninja/weapons/axe.png")
+const MAGE_ICON := preload("res://assets/ninja/weapons/magic_wand.png")
 const NAMES: PackedStringArray = ["WARRIOR", "MAGE"]
 
 var _levels: PackedFloat32Array = [1.0, 1.0]

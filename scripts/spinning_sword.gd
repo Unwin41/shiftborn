@@ -27,7 +27,7 @@ const HOLD_OFFSET := Vector2(6.0, 2.0)
 const HOLD_ANGLE := 0.35
 
 ## Weapon sprite, drawn with its grip at the bottom center.
-@export var texture: Texture2D = preload("res://assets/0x72_dungeon/frames/weapon_axe.png"):
+@export var texture: Texture2D = preload("res://assets/ninja/weapons/axe.png"):
 	set(value):
 		texture = value
 		queue_redraw()

@@ -1,7 +1,7 @@
 # Credits
 
 - Engine: [Godot Engine](https://godotengine.org) (MIT)
-- Art: [16x16 DungeonTileset II](https://0x72.itch.io/dungeontileset-ii) by 0x72 (CC0), in `assets/0x72_dungeon/`
+- Art and pixel font: [Ninja Adventure Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by [Pixel-boy](https://pixel-boy.itch.io/) and [AAA](https://www.instagram.com/challenger.aaa/) (CC0), in `assets/ninja/` (a selection, renamed by role; the pack's README is included)
 
 ## Music (all CC0), in `assets/audio/music/`
 

@@ -73,5 +73,6 @@ func _draw() -> void:
 	var font := get_theme_default_font()
 	var baseline := (BAR_HEIGHT + font.get_ascent(FONT_SIZE) - font.get_descent(FONT_SIZE)) * 0.5
 	var at := Vector2(0.0, baseline)
-	draw_string_outline(font, at, label_text(), HORIZONTAL_ALIGNMENT_CENTER, size.x, FONT_SIZE, 3, TEXT_OUTLINE_COLOR)
-	draw_string(font, at, label_text(), HORIZONTAL_ALIGNMENT_CENTER, size.x, FONT_SIZE, TEXT_COLOR)
+	var text := label_text().to_upper()
+	draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, size.x, FONT_SIZE, 3, TEXT_OUTLINE_COLOR)
+	draw_string(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, size.x, FONT_SIZE, TEXT_COLOR)

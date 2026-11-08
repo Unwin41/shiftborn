@@ -12,8 +12,8 @@ const BOSS_SPAWN_DISTANCE := 190.0
 ## Mini-bosses by run time. Spawned here rather than by a SpawnWave, so
 ## the spawner's alive cap can never drop them.
 const MINI_BOSSES: Array[Dictionary] = [
-	{time = 210.0, scene = preload("res://scenes/enemy_ogre.tscn")},
-	{time = 390.0, scene = preload("res://scenes/enemy_big_zombie.tscn")},
+	{time = 210.0, scene = preload("res://scenes/enemy_cyclops.tscn")},
+	{time = 390.0, scene = preload("res://scenes/enemy_giant_spirit.tscn")},
 ]
 ## Mini-bosses appear this far away, just off screen.
 const MINI_BOSS_SPAWN_DISTANCE := 260.0
@@ -72,13 +72,14 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	status_label.text = "%s   %s   HP %d/%d   Kills %d" % [
+	# Capitals via to_upper(), which ignores the OS locale; see LevelUpMenu.
+	status_label.text = ("%s   %s   HP %d/%d   Kills %d" % [
 		format_time(spawner.elapsed),
 		player.form_name(),
 		ceili(player.health),
 		int(player.max_health),
 		kills,
-	]
+	]).to_upper()
 	xp_bar.set_progress(experience.level, experience.progress())
 	energy_bars.show_levels(player.energy_level(Player.Form.KNIGHT), player.energy_level(Player.Form.MAGE), player.form)
 	if not _run_over:
@@ -202,5 +203,5 @@ func _end_run(title: String) -> void:
 	spawner.stop()
 	player.is_dead = true
 	get_tree().call_group(spawner.enemy_group, &"set_physics_process", false)
-	center_label.text = "%s\n%s  -  %d kills\n\nR / Start to retry" % [title, format_time(spawner.elapsed), kills]
+	center_label.text = ("%s\n%s  -  %d kills\n\nR / Start to retry" % [title, format_time(spawner.elapsed), kills]).to_upper()
 	center_label.show()

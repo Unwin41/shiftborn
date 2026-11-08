@@ -6,7 +6,7 @@ extends Control
 const BOSS_NAME := "THE SHIFTING DEMON"
 const BAR_WIDTH := 280.0
 const BAR_HEIGHT := 7.0
-const FONT_SIZE := 10
+const FONT_SIZE := 8
 const NAME_GAP := 2.0
 const FLASH_TIME := 0.35
 const BACKGROUND := Color(0.06, 0.05, 0.1, 0.9)

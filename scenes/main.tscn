@@ -6,14 +6,14 @@
 [ext_resource type="Script" path="res://addons/horde_kit/horde_spawner.gd" id="4_spawner"]
 [ext_resource type="Script" path="res://addons/horde_kit/spawn_wave.gd" id="5_wave"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="6_enemy"]
-[ext_resource type="PackedScene" path="res://scenes/enemy_runner.tscn" id="7_runner"]
-[ext_resource type="PackedScene" path="res://scenes/enemy_skeleton.tscn" id="8_skeleton"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_spirit.tscn" id="7_spirit"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_skull.tscn" id="8_skull"]
 [ext_resource type="Script" path="res://scripts/damage_numbers.gd" id="9_numbers"]
 [ext_resource type="Script" path="res://scripts/xp_bar.gd" id="10_xp_bar"]
 [ext_resource type="Script" path="res://scripts/energy_bars.gd" id="11_energy"]
 [ext_resource type="Script" path="res://scripts/boss_bar.gd" id="14_boss_bar"]
 
-[sub_resource type="Resource" id="Resource_opening"]
+[sub_resource type="Resource" id="Resource_spiders"]
 script = ExtResource("5_wave")
 enemy_scene = ExtResource("6_enemy")
 start_time = 0.0
@@ -21,17 +21,17 @@ end_time = 120.0
 interval = 1.5
 batch_size = 2
 
-[sub_resource type="Resource" id="Resource_runners"]
+[sub_resource type="Resource" id="Resource_spirits"]
 script = ExtResource("5_wave")
-enemy_scene = ExtResource("7_runner")
+enemy_scene = ExtResource("7_spirit")
 start_time = 45.0
 end_time = 540.0
 interval = 2.0
 batch_size = 3
 
-[sub_resource type="Resource" id="Resource_swarm"]
+[sub_resource type="Resource" id="Resource_skulls"]
 script = ExtResource("5_wave")
-enemy_scene = ExtResource("8_skeleton")
+enemy_scene = ExtResource("8_skull")
 start_time = 120.0
 end_time = 540.0
 interval = 0.8
@@ -70,7 +70,7 @@ script = ExtResource("9_numbers")
 
 [node name="HordeSpawner" type="Node2D" parent="."]
 script = ExtResource("4_spawner")
-waves = Array[ExtResource("5_wave")]([SubResource("Resource_opening"), SubResource("Resource_runners"), SubResource("Resource_swarm")])
+waves = Array[ExtResource("5_wave")]([SubResource("Resource_spiders"), SubResource("Resource_spirits"), SubResource("Resource_skulls")])
 target_path = NodePath("../Player")
 spawn_parent_path = NodePath("../Enemies")
 spawn_radius = 380.0
@@ -92,10 +92,10 @@ script = ExtResource("10_xp_bar")
 [node name="StatusLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true
 offset_left = 8.0
-offset_top = 16.0
+offset_top = 18.0
 offset_right = 632.0
-offset_bottom = 36.0
-theme_override_font_sizes/font_size = 12
+offset_bottom = 30.0
+theme_override_font_sizes/font_size = 8
 
 [node name="BossBar" type="Control" parent="HUD"]
 unique_name_in_owner = true
@@ -127,6 +127,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 vertical_alignment = 1

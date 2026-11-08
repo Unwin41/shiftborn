@@ -15,9 +15,10 @@ const CARD_SIZE := Vector2(150, 150)
 const CARD_PADDING := 8
 const CARD_SEPARATION := 12
 const ICON_SIZE := Vector2(32, 32)
-const HEADER_FONT_SIZE := 20
-const TITLE_FONT_SIZE := 12
-const SMALL_FONT_SIZE := 10
+## The pixel font is crisp at multiples of 8.
+const HEADER_FONT_SIZE := 16
+const TITLE_FONT_SIZE := 8
+const SMALL_FONT_SIZE := 8
 const DIM_COLOR := Color(0.0, 0.0, 0.0, 0.55)
 const CARD_COLOR := Color(0.12, 0.11, 0.16, 0.95)
 const CARD_HOVER_COLOR := Color(0.2, 0.18, 0.26, 0.95)
@@ -197,7 +198,10 @@ func _make_icon(texture: Texture2D) -> TextureRect:
 
 func _make_label(text: String, font_size: int, color: Color) -> Label:
 	var label := Label.new()
-	label.text = text
+	# The pixel font's capitals read far better than its lowercase.
+	# String.to_upper() ignores the OS locale (Label.uppercase does not:
+	# on a Turkish system it turns "i" into "İ").
+	label.text = text.to_upper()
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override(&"font_size", font_size)
 	label.add_theme_color_override(&"font_color", color)

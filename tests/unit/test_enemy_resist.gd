@@ -15,12 +15,12 @@ func test_neutral_source_and_neutral_enemy_ignore_resistance() -> void:
 
 
 func test_resistant_scenes_resist_the_expected_form() -> void:
-	var skeleton := preload("res://scenes/enemy_skeleton.tscn").instantiate() as Enemy
-	var imp := preload("res://scenes/enemy_runner.tscn").instantiate() as Enemy
-	var goblin := preload("res://scenes/enemy.tscn").instantiate() as Enemy
-	assert_eq(skeleton.resisted_form, Player.Form.MAGE, "skeleton should shrug off bolts")
-	assert_eq(imp.resisted_form, Player.Form.KNIGHT, "imp should shrug off the axe")
-	assert_eq(goblin.resisted_form, Enemy.NO_FORM, "goblin should be neutral")
-	skeleton.free()
-	imp.free()
-	goblin.free()
+	var skull := preload("res://scenes/enemy_skull.tscn").instantiate() as Enemy
+	var spirit := preload("res://scenes/enemy_spirit.tscn").instantiate() as Enemy
+	var spider := preload("res://scenes/enemy.tscn").instantiate() as Enemy
+	assert_eq(skull.resisted_form, Player.Form.MAGE, "skull should shrug off bolts")
+	assert_eq(spirit.resisted_form, Player.Form.KNIGHT, "spirit should shrug off the axe")
+	assert_eq(spider.resisted_form, Enemy.NO_FORM, "spider should be neutral")
+	skull.free()
+	spirit.free()
+	spider.free()

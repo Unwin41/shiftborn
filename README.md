@@ -1,10 +1,10 @@
 # Shiftborn
 
-A survivors-like where you **shift** between two forms mid-fight: a slow dwarf warrior who spins his axe around himself, and a fast mage who snipes the nearest enemy. Made with Godot 4.7 for [GitHub Game Off 2026](https://itch.io/jam/game-off-2026) (theme: **SHIFT**).
+A survivors-like where you **shift** between two forms mid-fight: a slow armored warrior who spins his axe around himself, and a fast mage who snipes the nearest enemy. Made with Godot 4.7 for [GitHub Game Off 2026](https://itch.io/jam/game-off-2026) (theme: **SHIFT**).
 
 **[Play in your browser](https://unwin41.github.io/shiftborn/)** · **[Download for Windows, macOS and Linux](https://github.com/Unwin41/shiftborn/releases)** · itch.io page coming soon
 
-> Work in progress. Art: [16x16 DungeonTileset II](https://0x72.itch.io/dungeontileset-ii) by 0x72 (CC0).
+> Work in progress. Art: [Ninja Adventure Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy and AAA (CC0).
 
 ## Download
 
@@ -25,10 +25,10 @@ Desktop builds run with extra effects: HDR glow and a light on every bolt. The b
 | Restart | R / Enter | Start |
 | Mute | M | |
 
-Attacks are automatic. Mini-bosses arrive at 3:30 (ogre) and 6:30 (big zombie); at 9:00 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.
+Attacks are automatic. Mini-bosses arrive at 3:30 (a cyclops demon) and 6:30 (a giant spirit); at 9:00 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.
 
 Why shift:
-- **Resistances.** Skeletons shrug off magic and imps shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.
+- **Resistances.** Skulls shrug off magic and spirits shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.
 - **Energy.** The active form tires and its damage drops to half; the resting form recovers twice as fast. The bars at the bottom show both.
 
 ## Horde Kit addon
@@ -53,7 +53,7 @@ godot --headless --import                                     # first run / CI
 godot --headless -s res://tests/run_tests.gd                  # unit tests
 godot --headless --fixed-fps 60 -s res://tests/smoke_test.gd  # gameplay smoke test
 godot --path . -- --boss  # start a run with the boss already there
-godot --headless -s res://tools/build_sprite_frames.gd        # rebuild SpriteFrames from assets/0x72_dungeon
+godot --headless -s res://tools/build_sprite_frames.gd        # rebuild SpriteFrames from assets/ninja
 ```
 
 Every push to `main` runs the tests, exports Web/Linux/Windows builds and deploys the web build to GitHub Pages. Pushing a `v*` tag also uploads the builds to itch.io, once the `BUTLER_API_KEY` secret and the `ITCH_GAME` variable are set.

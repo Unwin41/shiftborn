@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
-[ext_resource type="SpriteFrames" path="res://assets/sprite_frames/goblin.tres" id="2_goblin"]
+[ext_resource type="SpriteFrames" path="res://assets/sprite_frames/spider.tres" id="2_spider"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 6.0
@@ -13,7 +13,7 @@ monitoring = false
 script = ExtResource("1_enemy")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
-sprite_frames = ExtResource("2_goblin")
+sprite_frames = ExtResource("2_spider")
 animation = &"run"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

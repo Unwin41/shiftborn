@@ -1,5 +1,0 @@
-16x16 DungeonTileset II v1.7 by 0x72
-https://0x72.itch.io/dungeontileset-ii
-
-Asset license: Creative Commons Zero v1.0 Universal (CC0).
-Per the itch.io page: "You can use this tileset for whatever you like (CC-0). Credit is not necessary."

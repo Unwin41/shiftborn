@@ -13,8 +13,8 @@ signal hurt_feedback
 enum Form { KNIGHT, MAGE }
 
 const BOLT_SCENE := preload("res://scenes/bolt.tscn")
-const KNIGHT_FRAMES := preload("res://assets/sprite_frames/knight.tres")
-const MAGE_FRAMES := preload("res://assets/sprite_frames/wizard.tres")
+const KNIGHT_FRAMES := preload("res://assets/sprite_frames/warrior.tres")
+const MAGE_FRAMES := preload("res://assets/sprite_frames/mage.tres")
 const BODY_RADIUS := 7.0
 const HURT_FLASH_TIME := 0.1
 const HURT_TINT := Color(1.0, 0.45, 0.45)
@@ -79,6 +79,8 @@ const DEATH_FLASH := Color(8.0, 8.0, 8.0)
 @export var shift_burst_damage: float = 0.0
 
 var form: Form = Form.KNIGHT
+## Direction the sprite faces; see [Facing].
+var facing: StringName = Facing.DOWN
 var health: float
 var is_dead: bool = false
 
@@ -170,6 +172,7 @@ func take_damage(amount: float) -> void:
 func _play_death() -> void:
 	_sword.cancel()
 	_sword.hide()
+	$Shadow.hide()
 	_sprite.modulate = DEATH_FLASH
 	var tween := create_tween().set_parallel()
 	tween.tween_property(_sprite, ^"scale", DEATH_SCALE, DEATH_TIME).set_ease(Tween.EASE_OUT)
@@ -211,7 +214,7 @@ func form_name() -> String:
 func _apply_form_visuals() -> void:
 	var animation := _sprite.animation
 	_sprite.sprite_frames = KNIGHT_FRAMES if form == Form.KNIGHT else MAGE_FRAMES
-	_sprite.play(animation if _sprite.sprite_frames.has_animation(animation) else &"idle")
+	_sprite.play(animation if _sprite.sprite_frames.has_animation(animation) else Facing.idle_animation(_sprite.sprite_frames, facing))
 	_sword.visible = form == Form.KNIGHT
 	if form != Form.KNIGHT:
 		_sword.cancel()
@@ -229,10 +232,14 @@ func _shake(trauma_amount: float) -> void:
 
 
 func _update_animation(direction: Vector2) -> void:
-	_sprite.play(&"idle" if direction.is_zero_approx() else &"run")
+	facing = Facing.from_vector(direction, facing)
+	var frames := _sprite.sprite_frames
+	if direction.is_zero_approx():
+		_sprite.play(Facing.idle_animation(frames, facing))
+	else:
+		_sprite.play(Facing.walk_animation(frames, facing))
 	if not is_zero_approx(direction.x):
-		_sprite.flip_h = direction.x < 0.0
-		_sword.facing_left = _sprite.flip_h
+		_sword.facing_left = direction.x < 0.0
 
 
 func _update_hurt_flash(delta: float) -> void:
