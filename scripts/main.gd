@@ -42,6 +42,8 @@ const LEVEL_UP_COLOR := Color(1.0, 0.82, 0.35)
 ## Perfect shift flashes the screen white at this alpha, fading out.
 const PERFECT_FLASH_ALPHA := 0.3
 const PERFECT_FLASH_TIME := 0.25
+## Split pieces land this far from the corpse.
+const SPLIT_SPREAD := 8.0
 
 @onready var player: Player = $Player
 @onready var spawner: HordeSpawner = $HordeSpawner
@@ -106,6 +108,20 @@ func _ready() -> void:
 		spawn_boss.call_deferred()
 	elif not GameSettings.current().tutorial_done:
 		_start_tutorial()
+
+
+## Spawns the pieces of [param enemy], with the same health scaling as
+## wave enemies spawned now.
+func _split(enemy: Enemy) -> void:
+	var at := enemy.global_position
+	for offset in split_offsets(enemy.split_count):
+		var piece := enemy.split_scene.instantiate() as Enemy
+		piece.target = player
+		piece.add_to_group(spawner.enemy_group)
+		_on_enemy_spawned(piece)
+		_scale_enemy_health(piece)
+		enemy.get_parent().add_child.call_deferred(piece)
+		piece.position = at + offset
 
 
 ## Particles above the enemies, a white flash on the HUD, the player's
@@ -253,8 +269,18 @@ func _apply_quality() -> void:
 	world_environment.environment.glow_enabled = high
 
 
+## Where the pieces of a split enemy land, around its corpse.
+static func split_offsets(count: int) -> Array[Vector2]:
+	var offsets: Array[Vector2] = []
+	for i in count:
+		offsets.append(Vector2.from_angle(TAU * i / maxi(count, 1)) * SPLIT_SPREAD)
+	return offsets
+
+
 func _on_enemy_died(enemy: Enemy) -> void:
 	particles.burst(enemy.global_position, enemy.particle_color, enemy.particle_count, DEATH_BURST_SPEED)
+	if enemy.split_scene != null and not _run_over:
+		_split(enemy)
 	if _run_over:
 		return
 	kills += 1

@@ -43,6 +43,7 @@ func _run() -> void:
 	_check_perfect_shift(player, spawner)
 	# A Shift Burst from that shift can kill and level up; finish it.
 	await _drain_level_ups(main.level_up_menu)
+	await _check_new_enemies(main, player)
 	_check(not paused, "tree still paused after the run")
 	print("smoke: elapsed %.1fs, alive %d, knight kills %d, mage kills %d, hp %.1f, level %d" % [
 		spawner.elapsed, spawner.alive_count(), kills_as_knight, kills_as_mage, player.health,
@@ -155,6 +156,35 @@ func _kills_during(main: Node, seconds: int) -> int:
 		await physics_frame
 	await _drain_level_ups(menu)
 	return int(main.kills) - before
+
+
+## The eye shoots, the beast charges and the slime splits in two.
+func _check_new_enemies(main: Run, player: Player) -> void:
+	var eye := main.spawn_enemy(load("res://scenes/enemy_eye.tscn"), 150.0) as RangedEnemy
+	var beast := main.spawn_enemy(load("res://scenes/enemy_beast.tscn"), 90.0) as ChargerEnemy
+	eye.max_health = 1e6
+	eye.health = 1e6
+	beast.max_health = 1e6
+	beast.health = 1e6
+	var saw_bolt := false
+	var saw_charge := false
+	for frame in 4 * 60:
+		saw_bolt = saw_bolt or get_node_count_in_group(EnemyBolt.GROUP) > 0
+		saw_charge = saw_charge or (is_instance_valid(beast) and beast.state == ChargerEnemy.State.CHARGE)
+		if main.level_up_menu.visible:
+			main.level_up_menu.choose(0)
+		await physics_frame
+	_check(saw_bolt, "the eye never fired")
+	_check(saw_charge, "the beast never charged")
+	eye.queue_free()
+	beast.queue_free()
+	var slime := main.spawn_enemy(load("res://scenes/enemy_slime.tscn"), 200.0)
+	slime.take_damage(1e6)
+	for frame in 3:
+		await physics_frame
+	var smalls := get_nodes_in_group(main.spawner.enemy_group).filter(func(enemy: Node) -> bool: return enemy.scene_file_path == "res://scenes/enemy_slime_small.tscn")
+	_check(smalls.size() == 2, "slime split into %d pieces" % smalls.size())
+	await _drain_level_ups(main.level_up_menu)
 
 
 ## A level-up on the last frame would leave the tree paused for the

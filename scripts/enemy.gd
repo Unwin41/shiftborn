@@ -41,6 +41,9 @@ const SHADOW_LIFT := 3.0
 @export var particle_color: Color = Color(0.9, 0.3, 0.35)
 ## Particles in that burst; bigger enemies make bigger bursts.
 @export var particle_count: int = 6
+## On death the run spawns [member split_count] of this scene in its place.
+@export var split_scene: PackedScene
+@export var split_count: int = 2
 ## Form whose attacks deal only [constant RESISTED_DAMAGE] of their damage.
 @export_enum("None:-1", "Warrior:0", "Mage:1") var resisted_form: int = NO_FORM
 
