@@ -10,12 +10,12 @@ const ICON_DIR := "res://assets/0x72_dungeon/frames/"
 
 const ENTRIES: Array[Dictionary] = [
 	# Knight: four stats, two behaviours.
-	{id = &"knight_damage", title = "Honed Edge", text = "Sword damage +0.5", icon = "weapon_golden_sword", max = 5, tag = KNIGHT_TAG},
-	{id = &"knight_reach", title = "Long Blade", text = "Sword reach +6", icon = "weapon_spear", max = 5, tag = KNIGHT_TAG},
-	{id = &"knight_haste", title = "Quick Spin", text = "Spin 10% more often", icon = "weapon_katana", max = 5, tag = KNIGHT_TAG},
-	{id = &"knight_lifesteal", title = "Vampiric Edge", text = "Heal 0.15 HP per sword hit", icon = "weapon_red_gem_sword", max = 3, tag = KNIGHT_TAG},
-	{id = &"knight_twin_blade", title = "Twin Blade", text = "One more blade per spin", icon = "weapon_duel_sword", max = 2, tag = KNIGHT_TAG},
-	{id = &"knight_knockback", title = "Heavy Swing", text = "Sword hits knock enemies back", icon = "weapon_big_hammer", max = 3, tag = KNIGHT_TAG},
+	{id = &"knight_damage", title = "Honed Edge", text = "Axe damage +0.5", icon = "weapon_waraxe", max = 5, tag = KNIGHT_TAG},
+	{id = &"knight_reach", title = "Long Haft", text = "Axe reach +6", icon = "weapon_spear", max = 5, tag = KNIGHT_TAG},
+	{id = &"knight_haste", title = "Quick Spin", text = "Spin 10% more often", icon = "weapon_throwing_axe", max = 5, tag = KNIGHT_TAG},
+	{id = &"knight_lifesteal", title = "Vampiric Edge", text = "Heal 0.15 HP per axe hit", icon = "weapon_red_gem_sword", max = 3, tag = KNIGHT_TAG},
+	{id = &"knight_twin_blade", title = "Twin Axe", text = "One more axe per spin", icon = "weapon_double_axe", max = 2, tag = KNIGHT_TAG},
+	{id = &"knight_knockback", title = "Heavy Swing", text = "Axe hits knock enemies back", icon = "weapon_big_hammer", max = 3, tag = KNIGHT_TAG},
 	# Mage: four stats, two behaviours.
 	{id = &"mage_damage", title = "Arcane Power", text = "Bolt damage +0.35", icon = "weapon_red_magic_staff", max = 5, tag = MAGE_TAG},
 	{id = &"mage_haste", title = "Swift Casting", text = "Cast 12% more often", icon = "weapon_green_magic_staff", max = 5, tag = MAGE_TAG},

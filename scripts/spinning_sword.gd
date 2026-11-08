@@ -1,6 +1,6 @@
 class_name SpinningSword
 extends Node2D
-## Knight weapon. Rests in the hand; spin() sweeps it one full turn around
+## Melee weapon (the warrior's axe). Rests in the hand; spin() sweeps it one full turn around
 ## the owner with a fading trail. Emits [signal swept] every physics frame
 ## of the spin with the angle range the blade covered, so the owner can
 ## hit each enemy exactly when the blade passes it.
@@ -8,10 +8,10 @@ extends Node2D
 signal swept(from_angle: float, to_angle: float)
 signal spin_finished
 
-const TEXTURE := preload("res://assets/0x72_dungeon/frames/weapon_knight_sword.png")
 const SPIN_TIME := 0.3
-## Distance from the owner's center to the grip while spinning.
-const GRIP_RADIUS := 12.0
+## Smallest distance from the owner's center to the grip while spinning.
+## The grip moves out so the weapon's tip reaches the trail's outer edge.
+const MIN_GRIP_RADIUS := 12.0
 const TRAIL_INNER_RADIUS := 14.0
 ## Length of the trail behind the blade, in radians.
 const TRAIL_ARC := 1.8
@@ -26,6 +26,11 @@ const TRAIL_INNER_ALPHA := 0.3
 const HOLD_OFFSET := Vector2(6.0, 2.0)
 const HOLD_ANGLE := 0.35
 
+## Weapon sprite, drawn with its grip at the bottom center.
+@export var texture: Texture2D = preload("res://assets/0x72_dungeon/frames/weapon_axe.png"):
+	set(value):
+		texture = value
+		queue_redraw()
 ## Outer radius of the trail. The owner sets it to its attack radius.
 @export var reach: float = 44.0
 ## Blades evenly spaced around the spin. Each one hits every enemy it passes.
@@ -107,6 +112,13 @@ func _advance_spin(delta: float) -> void:
 	queue_redraw()
 
 
+## Grip distance during a spin: the tip lands on [member reach], so what the
+## player sees matches the hit radius.
+func grip_radius() -> float:
+	var length := float(texture.get_height()) if texture != null else 0.0
+	return maxf(reach - length, MIN_GRIP_RADIUS)
+
+
 func _draw() -> void:
 	for i in blade_count:
 		_draw_trail(_angle + TAU * i / blade_count)
@@ -114,7 +126,7 @@ func _draw() -> void:
 		for i in blade_count:
 			var angle := _angle + TAU * i / blade_count
 			# The texture points up (-Y); rotate so the blade points outward.
-			draw_set_transform(Vector2.from_angle(angle) * GRIP_RADIUS, angle + PI / 2.0)
+			draw_set_transform(Vector2.from_angle(angle) * grip_radius(), angle + PI / 2.0)
 			_draw_blade()
 	else:
 		var side := -1.0 if facing_left else 1.0
@@ -125,7 +137,8 @@ func _draw() -> void:
 
 ## Grip (bottom of the texture) sits at the current transform origin.
 func _draw_blade() -> void:
-	draw_texture(TEXTURE, Vector2(-TEXTURE.get_width() * 0.5, -TEXTURE.get_height()))
+	if texture != null:
+		draw_texture(texture, Vector2(-texture.get_width() * 0.5, -texture.get_height()))
 
 
 ## [param blade_angle] is where the blade leading this trail points.

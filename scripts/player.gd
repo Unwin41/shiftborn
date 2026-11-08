@@ -170,7 +170,7 @@ func refresh_stats() -> void:
 
 
 func form_name() -> String:
-	return "Knight" if form == Form.KNIGHT else "Mage"
+	return "Warrior" if form == Form.KNIGHT else "Mage"
 
 
 func _apply_form_visuals() -> void:

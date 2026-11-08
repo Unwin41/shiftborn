@@ -1,6 +1,6 @@
 # Shiftborn
 
-A survivors-like where you **shift** between two forms mid-fight: a slow knight who pulses damage around himself, and a fast mage who snipes the nearest enemy. Made with Godot 4.7 for [GitHub Game Off 2026](https://itch.io/jam/game-off-2026) (theme: **SHIFT**).
+A survivors-like where you **shift** between two forms mid-fight: a slow dwarf warrior who spins his axe around himself, and a fast mage who snipes the nearest enemy. Made with Godot 4.7 for [GitHub Game Off 2026](https://itch.io/jam/game-off-2026) (theme: **SHIFT**).
 
 **[Play in your browser](https://unwin41.github.io/shiftborn/)** · **[Download for Windows, macOS and Linux](https://github.com/Unwin41/shiftborn/releases)** · itch.io page coming soon
 

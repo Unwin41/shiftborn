@@ -59,3 +59,12 @@ func test_second_blade_sweeps_the_opposite_side() -> void:
 
 func test_full_turn_hits_once_per_blade() -> void:
 	assert_eq(SpinningSword.blades_in_sweep(1.0, 0.0, TAU, 3), [0, 1, 2] as Array[int])
+
+
+func test_grip_moves_out_so_the_tip_reaches_the_trail_edge() -> void:
+	var sword := SpinningSword.new()
+	sword.reach = 50.0
+	assert_almost_eq(sword.grip_radius(), 50.0 - sword.texture.get_height())
+	sword.reach = 10.0
+	assert_almost_eq(sword.grip_radius(), SpinningSword.MIN_GRIP_RADIUS)
+	sword.free()
