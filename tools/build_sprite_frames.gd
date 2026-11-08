@@ -12,7 +12,7 @@ const ANIMATION_FPS := {&"idle": 6.0, &"run": 10.0, &"hit": 1.0}
 
 ## Output name -> sprite prefix in the pack.
 const CHARACTERS := {
-	"knight": "knight_m",
+	"knight": "dwarf_m",
 	"wizard": "wizzard_m",
 	"goblin": "goblin",
 	"imp": "imp",

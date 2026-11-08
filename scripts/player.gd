@@ -28,7 +28,7 @@ const MULTISHOT_SPREAD := 0.2
 const SHIFT_BURST_RADIUS := 64.0
 ## Minimum time between two Shift Bursts, so shift spam is not free damage.
 const SHIFT_BURST_COOLDOWN := 2.0
-const KNIGHT_LIGHT_COLOR := Color(1.0, 0.78, 0.5)
+const KNIGHT_LIGHT_COLOR := Color(1.0, 0.88, 0.72)
 const MAGE_LIGHT_COLOR := Color(0.72, 0.66, 1.0)
 ## Torch flicker: energy wobbles by this much around the base energy.
 const LIGHT_FLICKER := 0.05

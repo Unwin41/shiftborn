@@ -21,7 +21,7 @@ script = ExtResource("3_sword")
 
 [node name="Light" type="PointLight2D" parent="."]
 position = Vector2(0, -4)
-color = Color(1, 0.78, 0.5, 1)
+color = Color(1, 0.88, 0.72, 1)
 energy = 0.55
 texture = ExtResource("5_light")
 texture_scale = 3.6
