@@ -160,6 +160,11 @@ SOUNDS = (
         Voice("square", 140, slide=-1.0, duty=0.15, sustain=0.01, decay=0.06, lowpass=0.25),
         Voice("noise", 250, sustain=0.005, decay=0.04, lowpass=0.2, volume=0.6),
     ), variants=2, pitch_spread=0.1, seed=13),
+    # A critical hit: a bright metallic ping on top of the hit.
+    Sound("crit", (
+        Voice("square", 1400, slide=1.5, duty=0.2, sustain=0.02, decay=0.12, lowpass=0.7),
+        Voice("triangle", 2100, sustain=0.02, decay=0.1, volume=0.5),
+    ), variants=2, pitch_spread=0.06, seed=14),
     # Enemies.
     Sound("enemy_death", (
         Voice("noise", 600, slide=-2.0, sustain=0.02, decay=0.18, punch=0.5, lowpass=0.45),

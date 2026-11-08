@@ -19,6 +19,8 @@ const MINI_BOSSES: Array[Dictionary] = [
 const MINI_BOSS_SPAWN_DISTANCE := 260.0
 ## Start with the boss: `godot --path . -- --boss`. For testing the fight.
 const BOSS_FLAG := "--boss"
+## Wave enemies spawned at time t get 1 + t / this many times their health.
+const HEALTH_GROWTH_SECONDS := 150.0
 const OFFER_COUNT := 3
 const HURT_HITSTOP := 0.06
 const DEATH_HITSTOP := 0.2
@@ -61,6 +63,7 @@ func _ready() -> void:
 	_apply_quality()
 	AudioManager.play_music(AudioManager.RUN_MUSIC)
 	spawner.enemy_spawned.connect(_on_enemy_spawned)
+	spawner.enemy_spawned.connect(_scale_enemy_health)
 	center_label.hide()
 	_rng.randomize()
 	level_up_menu = LevelUpMenu.new()
@@ -140,8 +143,22 @@ func _on_enemy_spawned(enemy: Node2D) -> void:
 		enemy.damaged.connect(_on_enemy_damaged)
 
 
-func _on_enemy_damaged(enemy: Enemy, amount: float, resisted: bool) -> void:
-	damage_numbers.spawn(enemy.global_position, amount, resisted)
+func _on_enemy_damaged(enemy: Enemy, amount: float, resisted: bool, crit: bool) -> void:
+	damage_numbers.spawn(enemy.global_position, amount, resisted, crit)
+	if crit and not resisted:
+		AudioManager.play(&"crit")
+
+
+## Health multiplier for wave enemies spawned [param elapsed] seconds in.
+## Mini-bosses and the boss keep their own fixed health.
+static func health_scale(elapsed: float) -> float:
+	return 1.0 + elapsed / HEALTH_GROWTH_SECONDS
+
+
+func _scale_enemy_health(enemy: Node2D) -> void:
+	if enemy is Enemy:
+		enemy.max_health *= health_scale(spawner.elapsed)
+		enemy.health = enemy.max_health
 
 
 ## HDR 2D and glow only on HIGH; see [Quality]. The scene ships with glow

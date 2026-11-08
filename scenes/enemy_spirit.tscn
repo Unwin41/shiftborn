@@ -5,7 +5,7 @@
 
 [node name="EnemySpirit" instance=ExtResource("1_base")]
 move_speed = 80.0
-max_health = 1.5
+max_health = 1.0
 contact_dps = 1.5
 body_radius = 5.0
 resisted_form = 0

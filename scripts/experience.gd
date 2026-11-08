@@ -2,13 +2,13 @@ class_name Experience
 extends RefCounted
 ## Run XP and level. Kills add XP directly (no pickups). Reaching level
 ## n + 1 from level n costs [method xp_for_level] of n; leftover XP carries.
-## Tuned for roughly 25 level-ups in a 10 minute run.
+## Tuned for roughly 30 level-ups before the boss at 9:00.
 
 signal leveled_up(new_level: int)
 
-const BASE_XP := 5
+const BASE_XP := 3
 ## Each level costs this much more than the previous one.
-const GROWTH := 1.15
+const GROWTH := 1.13
 
 var level: int = 1
 var xp: int = 0

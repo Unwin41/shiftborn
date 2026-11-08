@@ -28,6 +28,7 @@ const SOUNDS := {
 	&"axe_hit": {variants = 3, volume_db = -7.0, voices = 4, interval_ms = 35, pitch = 1.15},
 	&"bolt_cast": {variants = 3, volume_db = -13.0, voices = 3, interval_ms = 40, pitch = 1.08},
 	&"bolt_hit": {variants = 2, volume_db = -12.0, voices = 3, interval_ms = 35, pitch = 1.12},
+	&"crit": {variants = 2, volume_db = -10.0, voices = 2, interval_ms = 70, pitch = 1.05},
 	&"hit_resisted": {variants = 2, volume_db = -9.0, voices = 3, interval_ms = 45, pitch = 1.06},
 	&"enemy_death": {variants = 3, volume_db = -9.0, voices = 4, interval_ms = 30, pitch = 1.15},
 	&"player_hurt": {variants = 2, volume_db = -4.0, voices = 1, interval_ms = 150, pitch = 1.05},

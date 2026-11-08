@@ -5,8 +5,9 @@ extends Area2D
 ## Needs an AnimatedSprite2D child named "Sprite" with a "run" animation.
 
 signal died(enemy: Enemy)
-## [param resisted] is true when the hit came from the form it resists.
-signal damaged(enemy: Enemy, amount: float, resisted: bool)
+## [param resisted] is true when the hit came from the form it resists;
+## [param crit] when it was a critical hit.
+signal damaged(enemy: Enemy, amount: float, resisted: bool, crit: bool)
 
 const PLAYER_RADIUS := 7.0
 const HIT_FLASH_TIME := 0.08
@@ -109,14 +110,14 @@ func _physics_process(delta: float) -> void:
 
 ## [param source_form] is the attacking form, or [constant NO_FORM] for
 ## damage that ignores resistance (Shift Burst).
-func take_damage(amount: float, source_form: int = NO_FORM) -> void:
+func take_damage(amount: float, source_form: int = NO_FORM, crit: bool = false) -> void:
 	if health <= 0.0:
 		return
 	var resisted := resists(source_form)
 	var final_amount := damage_after_resist(amount, resisted_form, source_form)
 	var dealt := minf(final_amount, health)
 	health -= final_amount
-	damaged.emit(self, dealt, resisted)
+	damaged.emit(self, dealt, resisted, crit)
 	_hit_flash = HIT_FLASH_TIME
 	_sprite.modulate = HIT_FLASH_MODULATE
 	if health <= 0.0:

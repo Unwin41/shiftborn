@@ -9,7 +9,7 @@ func _count_tagged(upgrades: Array[Upgrade], tag: String) -> int:
 	return count
 
 
-func test_six_upgrades_per_form_and_four_shared() -> void:
+func test_six_upgrades_per_form_and_five_shared() -> void:
 	var upgrades := UpgradeCatalog.build()
 	assert_eq(_count_tagged(upgrades, UpgradeCatalog.KNIGHT_TAG), 6, "knight")
 	assert_eq(_count_tagged(upgrades, UpgradeCatalog.MAGE_TAG), 6, "mage")
@@ -17,7 +17,7 @@ func test_six_upgrades_per_form_and_four_shared() -> void:
 	for upgrade in upgrades:
 		if upgrade.tags.is_empty():
 			shared += 1
-	assert_eq(shared, 4, "shared")
+	assert_eq(shared, 5, "shared")
 
 
 func test_ids_are_unique_and_entries_complete() -> void:

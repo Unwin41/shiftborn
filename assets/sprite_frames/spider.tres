@@ -1,6 +1,6 @@
-[gd_resource type="SpriteFrames" format=3]
+[gd_resource type="SpriteFrames" format=3 uid="uid://jv6fglna27ds"]
 
-[ext_resource type="Texture2D" path="res://assets/ninja/monsters/spider.png" id="1_nku82"]
+[ext_resource type="Texture2D" uid="uid://wc07ugtoo31k" path="res://assets/ninja/monsters/spider.png" id="1_nku82"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jmr8e"]
 atlas = ExtResource("1_nku82")

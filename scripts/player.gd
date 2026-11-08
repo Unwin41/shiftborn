@@ -42,6 +42,7 @@ const HURT_TRAUMA := 0.45
 const DEATH_TRAUMA := 0.8
 const SHIFT_TRAUMA := 0.15
 const SHIFT_BURST_TRAUMA := 0.4
+const CRIT_MULTIPLIER := 2.0
 ## Death: flash white, squash and fade like the enemies, while the light dies.
 const DEATH_TIME := 0.6
 const DEATH_SCALE := Vector2(1.8, 0.2)
@@ -66,6 +67,8 @@ const DEATH_FLASH := Color(8.0, 8.0, 8.0)
 @export var mage_speed_multiplier: float = 1.15
 
 @export_group("Upgrades")
+## Chance (0..1) that a hit deals [constant CRIT_MULTIPLIER] damage.
+@export var crit_chance: float = 0.1
 ## HP healed per sword hit.
 @export var lifesteal: float = 0.0
 ## Knockback impulse (px/s) per sword hit.
@@ -198,6 +201,14 @@ func refresh_stats() -> void:
 	health_changed.emit(health, max_health)
 
 
+static func is_crit(chance: float, roll: float) -> bool:
+	return roll < chance
+
+
+static func hit_damage(base: float, crit: bool) -> float:
+	return base * CRIT_MULTIPLIER if crit else base
+
+
 static func ui_color(of_form: int) -> Color:
 	return KNIGHT_UI_COLOR if of_form == Form.KNIGHT else MAGE_UI_COLOR
 
@@ -297,7 +308,8 @@ func _sword_hit(enemy: Node2D, offset: Vector2) -> void:
 		return
 	if knockback > 0.0 and enemy.has_method("knockback"):
 		enemy.knockback(offset.normalized() * knockback)
-	enemy.take_damage(knight_damage * _energy.damage_multiplier(Form.KNIGHT), Form.KNIGHT)
+	var crit := is_crit(crit_chance, randf())
+	enemy.take_damage(hit_damage(knight_damage * _energy.damage_multiplier(Form.KNIGHT), crit), Form.KNIGHT, crit)
 	var resisted: bool = enemy is Enemy and enemy.resists(Form.KNIGHT)
 	AudioManager.play(&"hit_resisted" if resisted else &"axe_hit")
 	heal(lifesteal)
@@ -327,6 +339,7 @@ func _mage_bolt() -> void:
 		var bolt := BOLT_SCENE.instantiate() as Bolt
 		bolt.direction = aim.rotated((i - (bolt_count - 1) * 0.5) * MULTISHOT_SPREAD)
 		bolt.damage = mage_damage * _energy.damage_multiplier(Form.MAGE)
+		bolt.crit_chance = crit_chance
 		bolt.pierce = bolt_pierce
 		bolt.chain = bolt_chain
 		bolt.enemy_group = enemy_group

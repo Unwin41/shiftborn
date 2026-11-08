@@ -1,7 +1,7 @@
-[gd_resource type="SpriteFrames" format=3]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dgkq24845md6k"]
 
-[ext_resource type="Texture2D" path="res://assets/ninja/bosses/cyclops_idle.png" id="1_8pn66"]
-[ext_resource type="Texture2D" path="res://assets/ninja/bosses/cyclops_walk.png" id="2_8605q"]
+[ext_resource type="Texture2D" uid="uid://ca0oemvo5t4ok" path="res://assets/ninja/bosses/cyclops_idle.png" id="1_8pn66"]
+[ext_resource type="Texture2D" uid="uid://d302mxkf1romj" path="res://assets/ninja/bosses/cyclops_walk.png" id="2_8605q"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0ltxv"]
 atlas = ExtResource("1_8pn66")

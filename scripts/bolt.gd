@@ -24,6 +24,8 @@ var direction: Vector2 = Vector2.RIGHT
 var damage: float = 1.0
 var pierce: int = 0
 var chain: int = 0
+## Rolled per hit; see [method Player.is_crit].
+var crit_chance: float = 0.0
 ## Group searched for chain targets. The player sets it.
 var enemy_group: StringName = &"horde_enemy"
 
@@ -64,7 +66,8 @@ func _on_area_entered(area: Area2D) -> void:
 		return
 	_hit[id] = true
 	var hit_position := area.global_position
-	area.take_damage(damage, Player.Form.MAGE)
+	var crit := Player.is_crit(crit_chance, randf())
+	area.take_damage(Player.hit_damage(damage, crit), Player.Form.MAGE, crit)
 	var resisted: bool = area is Enemy and area.resists(Player.Form.MAGE)
 	AudioManager.play(&"hit_resisted" if resisted else &"bolt_hit")
 	if chain > 0 and _jump_from(hit_position):

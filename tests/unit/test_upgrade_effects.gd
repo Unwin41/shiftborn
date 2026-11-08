@@ -17,11 +17,22 @@ func test_unknown_id_is_rejected() -> void:
 	player.free()
 
 
-func test_knight_damage_adds_a_step() -> void:
+func test_damage_upgrades_scale_by_a_percentage() -> void:
 	var player := _player()
-	var before := player.knight_damage
+	var knight_before := player.knight_damage
+	var mage_before := player.mage_damage
 	assert_true(UpgradeEffects.apply(player, &"knight_damage"))
-	assert_almost_eq(player.knight_damage, before + UpgradeEffects.KNIGHT_DAMAGE_STEP)
+	assert_true(UpgradeEffects.apply(player, &"mage_damage"))
+	assert_almost_eq(player.knight_damage, knight_before * UpgradeEffects.DAMAGE_FACTOR)
+	assert_almost_eq(player.mage_damage, mage_before * UpgradeEffects.DAMAGE_FACTOR)
+	player.free()
+
+
+func test_precision_raises_crit_chance() -> void:
+	var player := _player()
+	var before := player.crit_chance
+	assert_true(UpgradeEffects.apply(player, &"precision"))
+	assert_almost_eq(player.crit_chance, before + UpgradeEffects.PRECISION_STEP)
 	player.free()
 
 
@@ -54,8 +65,9 @@ func test_vitality_raises_max_health_and_heals_the_same_amount() -> void:
 	player.health = 4.0
 	var max_before := player.max_health
 	UpgradeEffects.apply(player, &"vitality")
-	assert_almost_eq(player.max_health, max_before + UpgradeEffects.VITALITY_STEP)
-	assert_almost_eq(player.health, 4.0 + UpgradeEffects.VITALITY_STEP)
+	var gained := max_before * (UpgradeEffects.VITALITY_FACTOR - 1.0)
+	assert_almost_eq(player.max_health, max_before + gained)
+	assert_almost_eq(player.health, 4.0 + gained)
 	player.free()
 
 

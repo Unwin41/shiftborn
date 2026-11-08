@@ -11,8 +11,8 @@ config_version=5
 [application]
 
 config/name="Shiftborn"
-config/version="0.6.0"
 config/description="Survivors-like where you shift between knight and mage. GitHub Game Off 2026 (theme: SHIFT)."
+config/version="0.6.0"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -40,7 +40,7 @@ theme/custom_font="res://assets/fx/ui_font.tres"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
