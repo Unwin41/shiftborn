@@ -25,7 +25,7 @@ Desktop builds run with extra effects: HDR glow and a light on every bolt. The b
 | Restart | R / Enter | Start |
 | Mute | M | |
 
-Attacks are automatic. Survive 10 minutes.
+Attacks are automatic. Mini-bosses arrive at 3:30 (ogre) and 6:30 (big zombie); at 9:00 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.
 
 Why shift:
 - **Resistances.** Skeletons shrug off magic and imps shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.
@@ -52,6 +52,7 @@ Requires Godot 4.7.2.
 godot --headless --import                                     # first run / CI
 godot --headless -s res://tests/run_tests.gd                  # unit tests
 godot --headless --fixed-fps 60 -s res://tests/smoke_test.gd  # gameplay smoke test
+godot --path . -- --boss  # start a run with the boss already there
 godot --headless -s res://tools/build_sprite_frames.gd        # rebuild SpriteFrames from assets/0x72_dungeon
 ```
 

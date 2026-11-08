@@ -2,10 +2,14 @@ extends SceneTree
 ## Integration smoke test: runs the real main scene with no input.
 ## Usage: godot --headless --fixed-fps 60 -s res://tests/smoke_test.gd
 ## Checks that enemies spawn, reach the idle player, both forms kill and
-## level-ups open the card menu (always picking the first card).
+## level-ups open the card menu (always picking the first card). Then
+## brings in the boss early, checks it swaps resistance, fires rings and
+## takes damage, and that killing it wins the run.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const SECONDS_PER_PHASE := 15
+## Long enough for at least one resistance swap and two bolt rings.
+const BOSS_SECONDS := 12
 
 var _errors: PackedStringArray = []
 
@@ -35,10 +39,42 @@ func _run() -> void:
 	print("smoke: elapsed %.1fs, alive %d, knight kills %d, mage kills %d, hp %.1f, level %d" % [
 		spawner.elapsed, spawner.alive_count(), kills_as_knight, kills_as_mage, player.health,
 		main.experience.level])
+	await _check_boss(main, player)
 	for error in _errors:
 		printerr("SMOKE FAIL: ", error)
 	await AudioManager.shutdown()
 	quit(1 if not _errors.is_empty() else 0)
+
+
+func _check_boss(main: Run, player: Player) -> void:
+	player.max_health = 100000.0
+	player.health = player.max_health
+	var spawner: HordeSpawner = main.get_node("HordeSpawner")
+	# Jump past the last mini-boss time: both must spawn exactly once.
+	spawner.elapsed = Run.MINI_BOSSES[Run.MINI_BOSSES.size() - 1].time + 1.0
+	for frame in 3:
+		await physics_frame
+	var mini_bosses := get_nodes_in_group(spawner.enemy_group).filter(func(enemy: Node) -> bool: return enemy is Enemy and enemy.max_health >= 50.0)
+	_check(mini_bosses.size() == Run.MINI_BOSSES.size(), "expected %d mini-bosses, found %d" % [Run.MINI_BOSSES.size(), mini_bosses.size()])
+	# Like the real run: normal waves are over when the boss arrives.
+	spawner.stop()
+	for enemy in get_nodes_in_group(spawner.enemy_group):
+		enemy.take_damage(1e9)
+	main.spawn_boss()
+	var boss := main.boss
+	var swaps: Array[int] = []
+	boss.resistance_swapped.connect(func(form: int) -> void: swaps.append(form))
+	await _kills_during(main, BOSS_SECONDS)
+	_check(not swaps.is_empty(), "boss never swapped resistance")
+	_check(boss._ring_count >= 2, "boss fired %d bolt rings" % boss._ring_count)
+	_check(boss.health < boss.max_health, "boss took no damage")
+	_check(main.boss_bar.visible, "boss bar not shown")
+	print("smoke boss: swaps %d, rings %d, hp %.0f/%.0f" % [swaps.size(), boss._ring_count, boss.health, boss.max_health])
+	boss.take_damage(boss.health + 1.0)
+	for frame in 5:
+		await physics_frame
+	_check(main._run_over, "killing the boss did not end the run")
+	_check(main.center_label.text.begins_with("YOU WIN"), "run end text is %s" % main.center_label.text)
 
 
 func _kills_during(main: Node, seconds: int) -> int:

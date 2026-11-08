@@ -20,6 +20,8 @@ const CHARACTERS := {
 	"orc_warrior": "orc_warrior",
 	"chort": "chort",
 	"big_demon": "big_demon",
+	"ogre": "ogre",
+	"big_zombie": "big_zombie",
 }
 
 

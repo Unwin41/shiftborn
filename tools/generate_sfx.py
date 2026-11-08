@@ -187,6 +187,17 @@ SOUNDS = (
         Voice("noise", 200, slide=-1.5, sustain=0.04, decay=0.35, punch=0.8, lowpass=0.3),
         Voice("sine", 110, slide=-2.0, sustain=0.05, decay=0.3, volume=0.8),
     ), seed=53),
+    # Boss.
+    Sound("boss_roar", (
+        Voice("saw", 120, slide=-0.8, vibrato_depth=0.08, vibrato_rate=12, attack=0.05, sustain=0.35, decay=0.5, lowpass=0.35),
+        Voice("noise", 180, slide=-1.0, attack=0.05, sustain=0.3, decay=0.45, lowpass=0.2, volume=0.6),
+    ), seed=71),
+    Sound("boss_swap", (
+        Voice("square", 220, slide=3.0, duty=0.3, sustain=0.08, decay=0.2, lowpass=0.4),
+        Voice("square", 880, slide=-3.0, duty=0.3, sustain=0.08, decay=0.2, lowpass=0.4, volume=0.6),
+    ), seed=72),
+    Sound("boss_shot", (Voice("square", 700, slide=-3.5, duty=0.35, sustain=0.03, decay=0.14, lowpass=0.5),), seed=73),
+    Sound("boss_dash", (Voice("noise", 900, slide=-2.5, attack=0.1, sustain=0.15, decay=0.25, lowpass=0.3),), seed=74),
     # Progression and UI.
     Sound("level_up", (
         Voice("square", 523, sustain=0.32, decay=0.18, arpeggio=MAJOR, lowpass=0.6),

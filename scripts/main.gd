@@ -1,9 +1,24 @@
+class_name Run
 extends Node2D
 ## Run controller: wires player, spawner and HUD, turns kills into XP and
-## level-up card picks, ends the run on death or when the timer reaches
-## [constant RUN_LENGTH].
+## level-up card picks. Normal waves (with two mini-bosses) run until
+## [constant BOSS_TIME]; then the final boss arrives. Killing it wins the
+## run, dying loses it.
 
-const RUN_LENGTH := 600.0
+const BOSS_TIME := 540.0
+const BOSS_SCENE := preload("res://scenes/boss.tscn")
+## The boss appears this far from the player, inside the screen edge.
+const BOSS_SPAWN_DISTANCE := 190.0
+## Mini-bosses by run time. Spawned here rather than by a SpawnWave, so
+## the spawner's alive cap can never drop them.
+const MINI_BOSSES: Array[Dictionary] = [
+	{time = 210.0, scene = preload("res://scenes/enemy_ogre.tscn")},
+	{time = 390.0, scene = preload("res://scenes/enemy_big_zombie.tscn")},
+]
+## Mini-bosses appear this far away, just off screen.
+const MINI_BOSS_SPAWN_DISTANCE := 260.0
+## Start with the boss: `godot --path . -- --boss`. For testing the fight.
+const BOSS_FLAG := "--boss"
 const OFFER_COUNT := 3
 const HURT_HITSTOP := 0.06
 const DEATH_HITSTOP := 0.2
@@ -14,6 +29,7 @@ const DEATH_HITSTOP := 0.2
 @onready var center_label: Label = %CenterLabel
 @onready var xp_bar: XpBar = %XpBar
 @onready var energy_bars: EnergyBars = %EnergyBars
+@onready var boss_bar: BossBar = %BossBar
 @onready var damage_numbers: DamageNumbers = $DamageNumbers
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 
@@ -26,7 +42,9 @@ var _rng := RandomNumberGenerator.new()
 ## Level-ups earned but not picked yet; several can arrive in one frame.
 var _pending_level_ups: int = 0
 var _level_up_active: bool = false
-var _hitstop := Hitstop.new()
+var _hitstop: Hitstop
+var boss: Boss
+var _next_mini_boss: int = 0
 
 
 static func format_time(seconds: float) -> String:
@@ -37,8 +55,9 @@ static func format_time(seconds: float) -> String:
 func _ready() -> void:
 	player.enemy_group = spawner.enemy_group
 	player.died.connect(_on_player_died)
-	player.hurt_feedback.connect(_hitstop.trigger.bind(HURT_HITSTOP))
+	_hitstop = Hitstop.new()
 	add_child(_hitstop)
+	player.hurt_feedback.connect(_hitstop.trigger.bind(HURT_HITSTOP))
 	_apply_quality()
 	AudioManager.play_music(AudioManager.RUN_MUSIC)
 	spawner.enemy_spawned.connect(_on_enemy_spawned)
@@ -48,6 +67,8 @@ func _ready() -> void:
 	add_child(level_up_menu)
 	level_up_menu.chosen.connect(_on_upgrade_chosen)
 	level_up_menu.closed.connect(_open_level_up)
+	if BOSS_FLAG in OS.get_cmdline_user_args():
+		spawn_boss.call_deferred()
 
 
 func _process(_delta: float) -> void:
@@ -60,9 +81,50 @@ func _process(_delta: float) -> void:
 	]
 	xp_bar.set_progress(experience.level, experience.progress())
 	energy_bars.show_levels(player.energy_level(Player.Form.KNIGHT), player.energy_level(Player.Form.MAGE), player.form)
-	if not _run_over and spawner.elapsed >= RUN_LENGTH:
-		AudioManager.play(&"run_win")
-		_end_run("YOU SURVIVED")
+	if not _run_over:
+		_spawn_due_mini_bosses()
+	if not _run_over and boss == null and spawner.elapsed >= BOSS_TIME:
+		spawn_boss()
+	if is_instance_valid(boss):
+		boss_bar.show_boss(boss.health, boss.max_health, Enemy.weak_form_for(boss.resisted_form))
+
+
+## Brings in the final boss near the player and switches to boss music.
+func spawn_boss() -> void:
+	if boss != null or _run_over:
+		return
+	boss = _spawn_enemy(BOSS_SCENE, BOSS_SPAWN_DISTANCE) as Boss
+	boss.died.connect(_on_boss_died)
+	AudioManager.play(&"boss_roar")
+	AudioManager.play_music(AudioManager.BOSS_MUSIC, 0.5)
+
+
+func _spawn_due_mini_bosses() -> void:
+	while _next_mini_boss < MINI_BOSSES.size() and spawner.elapsed >= MINI_BOSSES[_next_mini_boss].time:
+		_spawn_enemy(MINI_BOSSES[_next_mini_boss].scene, MINI_BOSS_SPAWN_DISTANCE)
+		AudioManager.play(&"boss_roar")
+		_next_mini_boss += 1
+
+
+## Adds [param scene] like the spawner would (target, group, signals) at a
+## random point [param distance] away from the player.
+func _spawn_enemy(scene: PackedScene, distance: float) -> Enemy:
+	var enemy := scene.instantiate() as Enemy
+	enemy.target = player
+	enemy.add_to_group(spawner.enemy_group)
+	_on_enemy_spawned(enemy)
+	var parent := spawner.get_node(spawner.spawn_parent_path) if not spawner.spawn_parent_path.is_empty() else self
+	parent.add_child(enemy)
+	enemy.global_position = player.global_position + Vector2.from_angle(_rng.randf() * TAU) * distance
+	return enemy
+
+
+func _on_boss_died(_boss: Enemy) -> void:
+	if _run_over:
+		return
+	boss_bar.show_boss(0.0, 1.0, 0)
+	AudioManager.play(&"run_win")
+	_end_run("YOU WIN")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -132,6 +194,7 @@ func _on_player_died() -> void:
 func _end_run(title: String) -> void:
 	AudioManager.stop_music(1.5)
 	_run_over = true
+	get_tree().call_group(EnemyBolt.GROUP, &"queue_free")
 	_pending_level_ups = 0
 	_level_up_active = false
 	level_up_menu.cancel()

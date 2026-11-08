@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="1_base"]
+[ext_resource type="SpriteFrames" path="res://assets/sprite_frames/big_zombie.tres" id="2_zombie"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_zombie"]
+radius = 12.0
+
+[node name="EnemyBigZombie" instance=ExtResource("1_base")]
+move_speed = 30.0
+max_health = 140.0
+contact_dps = 5.0
+body_radius = 11.0
+xp_value = 25
+resisted_form = 0
+
+[node name="Sprite" parent="." index="0"]
+sprite_frames = ExtResource("2_zombie")
+
+[node name="CollisionShape2D" parent="." index="1"]
+shape = SubResource("CircleShape2D_zombie")

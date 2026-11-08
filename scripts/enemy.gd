@@ -22,7 +22,8 @@ const DEATH_SCALE := Vector2(1.5, 0.3)
 const NO_FORM := -1
 ## Share of damage taken from the resisted form.
 const RESISTED_DAMAGE := 0.25
-const WEAKNESS_MARK_OFFSET := Vector2(0.0, -12.0)
+## Gap between the top of the sprite and the weakness mark.
+const WEAKNESS_MARK_GAP := 4.0
 
 @export var move_speed: float = 45.0
 @export var max_health: float = 3.0
@@ -49,16 +50,32 @@ static func damage_after_resist(amount: float, resisted: int, source_form: int) 
 	return amount
 
 
+## The form that beats an enemy resisting [param resisted].
+static func weak_form_for(resisted: int) -> Player.Form:
+	return Player.Form.MAGE if resisted == Player.Form.KNIGHT else Player.Form.KNIGHT
+
+
 func resists(source_form: int) -> bool:
 	return resisted_form != NO_FORM and source_form == resisted_form
 
 
+## Changes the resisted form at runtime and updates the weakness mark.
+func set_resisted_form(form: int) -> void:
+	resisted_form = form
+	if form == NO_FORM:
+		if _weakness_mark != null:
+			_weakness_mark.hide()
+		return
+	if _weakness_mark == null:
+		_weakness_mark = WeaknessMark.create(weak_form_for(form), _weakness_mark_offset())
+		add_child(_weakness_mark)
+	_weakness_mark.set_weak_to(weak_form_for(form))
+	_weakness_mark.show()
+
+
 func _ready() -> void:
 	health = max_health
-	if resisted_form != NO_FORM:
-		var weak_to := Player.Form.MAGE if resisted_form == Player.Form.KNIGHT else Player.Form.KNIGHT
-		_weakness_mark = WeaknessMark.create(weak_to, WEAKNESS_MARK_OFFSET)
-		add_child(_weakness_mark)
+	set_resisted_form(resisted_form)
 	_sprite.play(&"run")
 	# Desync animations so a crowd does not bob in lockstep.
 	_sprite.frame = randi() % maxi(_sprite.sprite_frames.get_frame_count(&"run"), 1)
@@ -125,6 +142,13 @@ func _update_knockback(delta: float) -> void:
 	_knockback_velocity *= exp(-KNOCKBACK_DECAY * delta)
 	if _knockback_velocity.length_squared() < 1.0:
 		_knockback_velocity = Vector2.ZERO
+
+
+## Just above the sprite's top edge, whatever its size and scale.
+func _weakness_mark_offset() -> Vector2:
+	var frame := _sprite.sprite_frames.get_frame_texture(&"run", 0)
+	var half_height := frame.get_height() * 0.5 * _sprite.scale.y if frame != null else 8.0
+	return Vector2(0.0, _sprite.position.y - half_height - WEAKNESS_MARK_GAP)
 
 
 func _update_hit_flash(delta: float) -> void:

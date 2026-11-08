@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Shiftborn"
-config/version="0.4.0"
+config/version="0.5.0"
 config/description="Survivors-like where you shift between knight and mage. GitHub Game Off 2026 (theme: SHIFT)."
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")

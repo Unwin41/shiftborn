@@ -17,6 +17,11 @@ static func create(weak_to: Player.Form, at: Vector2) -> WeaknessMark:
 	return mark
 
 
+func set_weak_to(weak_to: Player.Form) -> void:
+	color = Player.ui_color(weak_to)
+	queue_redraw()
+
+
 func _init() -> void:
 	material = UNSHADED
 	z_index = 5
