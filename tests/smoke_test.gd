@@ -63,11 +63,16 @@ func _check_boss(main: Run, player: Player) -> void:
 	spawner.stop()
 	for enemy in get_nodes_in_group(spawner.enemy_group):
 		enemy.take_damage(1e9)
+	# Every evolution on, so their code runs in the real scene.
+	for id: StringName in [&"shift_burst", &"momentum", &"evo_arcane_orbit", &"evo_storm_cleaver", &"evo_blood_pact", &"evo_twin_soul"]:
+		UpgradeEffects.apply(player, id)
 	main.spawn_boss()
 	var boss := main.boss
 	var swaps: Array[int] = []
 	boss.resistance_swapped.connect(func(form: int) -> void: swaps.append(form))
-	await _kills_during(main, BOSS_SECONDS)
+	for half in 2:
+		await _kills_during(main, BOSS_SECONDS / 2)
+		player.shift()
 	_check(not swaps.is_empty(), "boss never swapped resistance")
 	_check(boss._ring_count >= 2, "boss fired %d bolt rings" % boss._ring_count)
 	_check(boss.health < boss.max_health, "boss took no damage")

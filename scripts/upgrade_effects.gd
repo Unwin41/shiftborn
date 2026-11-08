@@ -19,6 +19,8 @@ const REGEN_STEP := 0.3
 const SHIFT_BURST_DAMAGE_STEP := 4.0
 ## Added crit chance per level.
 const PRECISION_STEP := 0.08
+## Momentum damage bonus per level.
+const MOMENTUM_STEP := 0.2
 
 const KNOWN_IDS: Array[StringName] = [
 	&"knight_damage", &"knight_reach", &"knight_haste", &"knight_lifesteal",
@@ -26,6 +28,8 @@ const KNOWN_IDS: Array[StringName] = [
 	&"mage_damage", &"mage_haste", &"mage_range", &"mage_pierce",
 	&"mage_multishot", &"mage_chain",
 	&"vitality", &"swiftness", &"regen", &"shift_burst", &"precision",
+	&"momentum",
+	&"evo_arcane_orbit", &"evo_storm_cleaver", &"evo_blood_pact", &"evo_twin_soul",
 ]
 
 
@@ -52,6 +56,9 @@ static func apply(player: Player, id: StringName) -> bool:
 		&"regen": player.regen_per_second += REGEN_STEP
 		&"shift_burst": player.shift_burst_damage += SHIFT_BURST_DAMAGE_STEP
 		&"precision": player.crit_chance += PRECISION_STEP
+		&"momentum": player.momentum_bonus += MOMENTUM_STEP
+		&"evo_arcane_orbit", &"evo_storm_cleaver", &"evo_blood_pact", &"evo_twin_soul":
+			player.add_evolution(id)
 		_:
 			push_warning("UpgradeEffects: unknown upgrade %s" % id)
 			return false

@@ -117,3 +117,15 @@ func test_owned_lists_only_upgrades_with_levels_in_add_order() -> void:
 	assert_eq(owned.size(), 2)
 	assert_eq(owned[0].id, &"a")
 	assert_eq(owned[1].id, &"c")
+
+
+func test_requires_maxed_blocks_until_every_id_is_at_max() -> void:
+	var evolution := _make(&"evo", 1)
+	evolution.requires_maxed = [&"a", &"b"]
+	var pool := UpgradePool.new([_make(&"a", 2), _make(&"b", 1), evolution])
+	assert_false(pool.is_eligible(evolution), "nothing maxed yet")
+	pool.apply(&"a")
+	pool.apply(&"b")
+	assert_false(pool.is_eligible(evolution), "a is not maxed yet")
+	pool.apply(&"a")
+	assert_true(pool.is_eligible(evolution), "both maxed")

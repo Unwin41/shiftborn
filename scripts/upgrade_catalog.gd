@@ -29,7 +29,16 @@ const ENTRIES: Array[Dictionary] = [
 	{id = &"regen", title = "Regeneration", text = "Recover 0.3 HP per second", icon = "Heal", max = 3, tag = ""},
 	{id = &"shift_burst", title = "Shift Burst", text = "Shifting blasts nearby enemies for 4 damage (every 2s)", icon = "Explosion", max = 3, tag = ""},
 	{id = &"precision", title = "Precision", text = "Critical hit chance +8% (crits deal x2)", icon = "LuckUpgrade", max = 5, tag = ""},
+	{id = &"momentum", title = "Momentum", text = "+20% damage for 2s after a shift", icon = "Sun", max = 3, tag = ""},
+	# Evolutions: offered in both forms once both upgrades they need are
+	# maxed. Their attacks ignore resistances.
+	{id = &"evo_arcane_orbit", title = "Arcane Orbit", text = "Three magic orbs circle you in both forms", icon = "OrbLight", max = 1, tag = "", needs = [&"knight_twin_blade", &"mage_multishot"]},
+	{id = &"evo_storm_cleaver", title = "Storm Cleaver", text = "Axe hits arc lightning to 2 enemies. Bolts knock back", icon = "Rain", max = 1, tag = "", needs = [&"knight_knockback", &"mage_chain"]},
+	{id = &"evo_blood_pact", title = "Blood Pact", text = "Bolts steal life too. +25% damage at full HP", icon = "BookDeath", max = 1, tag = "", needs = [&"knight_lifesteal", &"mage_damage"]},
+	{id = &"evo_twin_soul", title = "Twin Soul", text = "Shift Burst doubles in size and unleashes the new form's attack", icon = "Permutation", max = 1, tag = "", needs = [&"shift_burst", &"momentum"]},
 ]
+## Evolutions are rare to unlock, so once ready they come up often.
+const EVOLUTION_WEIGHT := 4.0
 
 
 static func build() -> Array[Upgrade]:
@@ -43,6 +52,9 @@ static func build() -> Array[Upgrade]:
 		upgrade.max_level = entry.max
 		if entry.tag != "":
 			upgrade.tags = PackedStringArray([entry.tag])
+		if entry.has("needs"):
+			upgrade.requires_maxed.assign(entry.needs)
+			upgrade.weight = EVOLUTION_WEIGHT
 		upgrades.append(upgrade)
 	return upgrades
 

@@ -47,6 +47,9 @@ func is_eligible(upgrade: Upgrade, tag_filter: PackedStringArray = []) -> bool:
 	for required in upgrade.requires:
 		if level_of(required) < 1:
 			return false
+	for required in upgrade.requires_maxed:
+		if not is_maxed(required):
+			return false
 	if tag_filter.is_empty() or upgrade.tags.is_empty():
 		return true
 	for tag in upgrade.tags:

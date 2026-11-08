@@ -52,6 +52,15 @@ const DEATH_FLASH := Color(8.0, 8.0, 8.0)
 ## Invulnerable: the sprite blinks between these every BLINK_TIME seconds.
 const INVULNERABLE_TINT := Color(1.8, 1.8, 2.2)
 const INVULNERABLE_BLINK_TIME := 0.06
+## Momentum: damage bonus lasts this long after each shift.
+const MOMENTUM_TIME := 2.0
+## Blood Pact: damage factor while at full health.
+const BLOOD_PACT_FULL_HEALTH_BONUS := 1.25
+## Twin Soul: Shift Burst radius factor and the mage's bolt ring size.
+const TWIN_SOUL_RADIUS_FACTOR := 2.0
+const TWIN_SOUL_BOLTS := 8
+## Storm Cleaver: push speed (px/s) of each bolt hit.
+const STORM_BOLT_KNOCKBACK := 140.0
 
 @export var move_speed: float = 110.0
 @export var max_health: float = 10.0
@@ -85,6 +94,8 @@ const INVULNERABLE_BLINK_TIME := 0.06
 @export var regen_per_second: float = 0.0
 ## Damage dealt around the player on shift. 0 disables the burst.
 @export var shift_burst_damage: float = 0.0
+## Extra damage (0.2 = +20%) for [constant MOMENTUM_TIME] after a shift.
+@export var momentum_bonus: float = 0.0
 
 var form: Form = Form.KNIGHT
 ## Direction the sprite faces; see [Facing].
@@ -102,6 +113,9 @@ var _light_time: float = 0.0
 var _energy := FormEnergy.new()
 var _perfect := PerfectShift.new()
 var _invulnerable_time: float = 0.0
+var _momentum_time: float = 0.0
+## Ids of the evolutions taken; see [UpgradeCatalog].
+var _evolutions: Dictionary[StringName, bool] = {}
 ## Blades that already hit each enemy this spin (instance id -> bitmask).
 var _sword_hits: Dictionary[int, int] = {}
 
@@ -130,6 +144,7 @@ func _physics_process(delta: float) -> void:
 	_update_light(delta)
 	_energy.tick(form, delta)
 	_perfect.tick(delta)
+	_momentum_time = maxf(_momentum_time - delta, 0.0)
 	_update_invulnerability(delta)
 	_update_hurt_flash(delta)
 	if regen_per_second > 0.0:
@@ -151,6 +166,7 @@ func shift() -> void:
 	AudioManager.play(&"shift_to_mage" if form == Form.MAGE else &"shift_to_warrior")
 	_shift_timer = shift_cooldown
 	_attack_timer = SHIFT_ATTACK_DELAY
+	_momentum_time = MOMENTUM_TIME
 	_apply_form_visuals()
 	_shift_burst()
 	_shake(SHIFT_TRAUMA)
@@ -163,6 +179,36 @@ func shift() -> void:
 		_energy.restore(form, PerfectShift.ENERGY_REFUND)
 		AudioManager.play(&"perfect_shift")
 		perfect_shifted.emit()
+
+
+static func momentum_factor(bonus: float, time_left: float) -> float:
+	return 1.0 + bonus if time_left > 0.0 else 1.0
+
+
+static func blood_pact_factor(has_pact: bool, current_health: float, maximum_health: float) -> float:
+	return BLOOD_PACT_FULL_HEALTH_BONUS if has_pact and current_health >= maximum_health else 1.0
+
+
+## Everything that scales [param of_form]'s damage right now: its energy,
+## Momentum after a shift and Blood Pact at full health.
+func damage_multiplier(of_form: Form) -> float:
+	return _energy.damage_multiplier(of_form) \
+		* momentum_factor(momentum_bonus, _momentum_time) \
+		* blood_pact_factor(has_evolution(&"evo_blood_pact"), health, max_health)
+
+
+func has_evolution(id: StringName) -> bool:
+	return _evolutions.has(id)
+
+
+func add_evolution(id: StringName) -> void:
+	if has_evolution(id):
+		return
+	_evolutions[id] = true
+	if id == &"evo_arcane_orbit":
+		var orbit := ArcaneOrbit.new()
+		orbit.player = self
+		add_child(orbit)
 
 
 func make_invulnerable(seconds: float) -> void:
@@ -353,7 +399,10 @@ func _sword_hit(enemy: Node2D, offset: Vector2) -> void:
 	if knockback > 0.0 and enemy.has_method("knockback"):
 		enemy.knockback(offset.normalized() * knockback)
 	var crit := is_crit(crit_chance, randf())
-	enemy.take_damage(hit_damage(knight_damage * _energy.damage_multiplier(Form.KNIGHT), crit), Form.KNIGHT, crit)
+	var damage := hit_damage(knight_damage * damage_multiplier(Form.KNIGHT), crit)
+	enemy.take_damage(damage, Form.KNIGHT, crit)
+	if enemy is Enemy and has_evolution(&"evo_storm_cleaver"):
+		StormCleaver.strike(enemy, enemy_group, damage * StormCleaver.DAMAGE_SHARE, self)
 	var resisted: bool = enemy is Enemy and enemy.resists(Form.KNIGHT)
 	AudioManager.play(&"hit_resisted" if resisted else &"axe_hit")
 	heal(lifesteal)
@@ -363,14 +412,28 @@ func _shift_burst() -> void:
 	if shift_burst_damage <= 0.0 or _burst_timer > 0.0:
 		return
 	_burst_timer = SHIFT_BURST_COOLDOWN
-	add_child(ShiftBurstFx.create(SHIFT_BURST_RADIUS))
+	var twin_soul := has_evolution(&"evo_twin_soul")
+	var radius := SHIFT_BURST_RADIUS * (TWIN_SOUL_RADIUS_FACTOR if twin_soul else 1.0)
+	add_child(ShiftBurstFx.create(radius))
 	AudioManager.play(&"shift_burst")
 	_shake(SHIFT_BURST_TRAUMA)
 	for node in get_tree().get_nodes_in_group(enemy_group):
 		var enemy := node as Node2D
 		if enemy != null and enemy.has_method("take_damage") \
-				and enemy.global_position.distance_to(global_position) <= SHIFT_BURST_RADIUS:
+				and enemy.global_position.distance_to(global_position) <= radius:
 			enemy.take_damage(shift_burst_damage)
+	if twin_soul:
+		_unleash_form_attack()
+
+
+## Twin Soul: the new form attacks at once, the mage with a ring of bolts.
+func _unleash_form_attack() -> void:
+	if form == Form.KNIGHT:
+		_knight_pulse()
+		return
+	AudioManager.play(&"bolt_cast")
+	for i in TWIN_SOUL_BOLTS:
+		_spawn_bolt(Vector2.from_angle(TAU * i / TWIN_SOUL_BOLTS))
 
 
 func _mage_bolt() -> void:
@@ -380,15 +443,24 @@ func _mage_bolt() -> void:
 	var aim := global_position.direction_to(target.global_position)
 	AudioManager.play(&"bolt_cast")
 	for i in bolt_count:
-		var bolt := BOLT_SCENE.instantiate() as Bolt
-		bolt.direction = aim.rotated((i - (bolt_count - 1) * 0.5) * MULTISHOT_SPREAD)
-		bolt.damage = mage_damage * _energy.damage_multiplier(Form.MAGE)
-		bolt.crit_chance = crit_chance
-		bolt.pierce = bolt_pierce
-		bolt.chain = bolt_chain
-		bolt.enemy_group = enemy_group
-		get_parent().add_child(bolt)
-		bolt.global_position = global_position
+		_spawn_bolt(aim.rotated((i - (bolt_count - 1) * 0.5) * MULTISHOT_SPREAD))
+
+
+func _spawn_bolt(direction: Vector2) -> void:
+	var bolt := BOLT_SCENE.instantiate() as Bolt
+	bolt.direction = direction
+	bolt.damage = mage_damage * damage_multiplier(Form.MAGE)
+	bolt.crit_chance = crit_chance
+	bolt.pierce = bolt_pierce
+	bolt.chain = bolt_chain
+	bolt.enemy_group = enemy_group
+	if has_evolution(&"evo_storm_cleaver"):
+		bolt.knockback = STORM_BOLT_KNOCKBACK
+	if has_evolution(&"evo_blood_pact"):
+		bolt.lifesteal = lifesteal
+		bolt.healer = self
+	get_parent().add_child(bolt)
+	bolt.global_position = global_position
 
 
 func _nearest_enemy(max_distance: float) -> Node2D:

@@ -22,6 +22,8 @@ const SMALL_FONT_SIZE := 8
 const DIM_COLOR := Color(0.0, 0.0, 0.0, 0.55)
 const CARD_COLOR := Color(0.12, 0.11, 0.16, 0.95)
 const CARD_HOVER_COLOR := Color(0.2, 0.18, 0.26, 0.95)
+## Evolution cards get a warm background next to the gold border.
+const EVOLUTION_CARD_COLOR := Color(0.22, 0.16, 0.08, 0.95)
 const BORDER_COLOR := Color(0.45, 0.42, 0.55)
 const ACCENT_COLOR := Color(1.0, 0.82, 0.35)
 const TEXT_COLOR := Color(0.85, 0.85, 0.9)
@@ -41,6 +43,13 @@ var _cards: Array[Button] = []
 var _accepting_input := false
 ## Bumped on every open so a stale grace timer cannot unlock a newer menu.
 var _open_serial := 0
+
+
+## The line under a card's title: EVOLUTION, NEW or the level step.
+static func badge_text(upgrade: Upgrade, current_level: int) -> String:
+	if not upgrade.requires_maxed.is_empty():
+		return "EVOLUTION"
+	return level_text(current_level).to_upper()
 
 
 static func level_text(current_level: int) -> String:
@@ -164,7 +173,8 @@ func _make_card(upgrade: Upgrade, current_level: int, index: int) -> Button:
 	var card := Button.new()
 	card.custom_minimum_size = CARD_SIZE
 	card.focus_mode = Control.FOCUS_ALL
-	card.add_theme_stylebox_override(&"normal", _card_style(CARD_COLOR, BORDER_COLOR))
+	var evolution := not upgrade.requires_maxed.is_empty()
+	card.add_theme_stylebox_override(&"normal", _card_style(EVOLUTION_CARD_COLOR if evolution else CARD_COLOR, ACCENT_COLOR if evolution else BORDER_COLOR))
 	card.add_theme_stylebox_override(&"hover", _card_style(CARD_HOVER_COLOR, BORDER_COLOR))
 	card.add_theme_stylebox_override(&"pressed", _card_style(CARD_HOVER_COLOR, ACCENT_COLOR))
 	card.add_theme_stylebox_override(&"focus", _focus_style())
@@ -178,7 +188,7 @@ func _make_card(upgrade: Upgrade, current_level: int, index: int) -> Button:
 	card.add_child(box)
 	box.add_child(_make_icon(upgrade.icon))
 	box.add_child(_make_label("%d. %s" % [index + 1, upgrade.title], TITLE_FONT_SIZE, Color.WHITE))
-	box.add_child(_make_label(level_text(current_level), SMALL_FONT_SIZE, ACCENT_COLOR))
+	box.add_child(_make_label(badge_text(upgrade, current_level), SMALL_FONT_SIZE, ACCENT_COLOR))
 	var description := _make_label(upgrade.description, SMALL_FONT_SIZE, TEXT_COLOR)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(description)

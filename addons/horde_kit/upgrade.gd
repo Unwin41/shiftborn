@@ -16,3 +16,6 @@ extends Resource
 @export var tags: PackedStringArray = []
 ## Ids that need level 1 or higher before this upgrade is offered.
 @export var requires: Array[StringName] = []
+## Ids that must all be at max level before this upgrade is offered,
+## e.g. an evolution that combines two maxed upgrades.
+@export var requires_maxed: Array[StringName] = []

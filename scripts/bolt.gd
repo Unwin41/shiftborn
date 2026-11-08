@@ -28,6 +28,11 @@ var chain: int = 0
 var crit_chance: float = 0.0
 ## Group searched for chain targets. The player sets it.
 var enemy_group: StringName = &"horde_enemy"
+## Push speed (px/s) given to each enemy hit (Storm Cleaver).
+var knockback: float = 0.0
+## HP given to [member healer] per hit (Blood Pact).
+var lifesteal: float = 0.0
+var healer: Player
 
 var _spent: bool = false
 var _chained: bool = false
@@ -68,6 +73,10 @@ func _on_area_entered(area: Area2D) -> void:
 	var hit_position := area.global_position
 	var crit := Player.is_crit(crit_chance, randf())
 	area.take_damage(Player.hit_damage(damage, crit), Player.Form.MAGE, crit)
+	if knockback > 0.0 and area.has_method("knockback"):
+		area.knockback(direction * knockback)
+	if lifesteal > 0.0 and is_instance_valid(healer):
+		healer.heal(lifesteal)
 	var resisted: bool = area is Enemy and area.resists(Player.Form.MAGE)
 	AudioManager.play(&"hit_resisted" if resisted else &"bolt_hit")
 	if chain > 0 and _jump_from(hit_position):

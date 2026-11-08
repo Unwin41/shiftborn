@@ -31,6 +31,12 @@ Why shift:
 - **Resistances.** Skulls shrug off magic and spirits shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.
 - **Energy.** The active form tires and its damage drops to half; the resting form recovers twice as fast. The bars at the bottom show both.
 - **Perfect shift.** Shift just as an enemy or a bolt is about to hit you: time slows, you are briefly invulnerable and the new form gets a burst of energy. Once every 2 seconds.
+- **Momentum.** A shared upgrade: +20% damage per level for 2 seconds after each shift.
+- **Evolutions.** Max out one warrior and one mage upgrade (or Shift Burst and Momentum) and a gold evolution card appears. Evolutions work in both forms and ignore resistances:
+  - **Arcane Orbit** (Twin Axe + Split Bolt): three orbs circle you.
+  - **Storm Cleaver** (Heavy Swing + Chain Spark): axe hits arc lightning to two enemies; bolts knock back.
+  - **Blood Pact** (Vampiric Edge + Arcane Power): bolts steal life; +25% damage at full HP.
+  - **Twin Soul** (Shift Burst + Momentum): a burst twice as big that also unleashes the new form's attack.
 
 ## Horde Kit addon
 
