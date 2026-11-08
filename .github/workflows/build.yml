@@ -54,12 +54,16 @@ jobs:
 
       - name: Export
         run: |
-          mkdir -p build/web build/linux build/windows
+          mkdir -p build/web build/linux build/windows build/macos
           touch build/.gdignore
           godot --headless --export-release "Web" build/web/index.html
           godot --headless --export-release "Linux" build/linux/shiftborn.x86_64
           godot --headless --export-release "Windows Desktop" build/windows/shiftborn.exe
+          godot --headless --export-release "macOS" build/macos/shiftborn.zip
           test -f build/web/index.html
+          test -f build/linux/shiftborn.x86_64
+          test -f build/windows/shiftborn.exe
+          test -f build/macos/shiftborn.zip
 
       - uses: actions/upload-artifact@v4
         with:
@@ -73,6 +77,10 @@ jobs:
         with:
           name: windows
           path: build/windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: build/macos
 
       - name: Upload Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -97,6 +105,40 @@ jobs:
     steps:
       - id: deploy
         uses: actions/deploy-pages@v4
+
+  # Publishes tagged builds as zips on GitHub Releases. v0.x tags are
+  # marked as pre-releases.
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: build
+      - name: Zip builds
+        run: |
+          mkdir dist
+          name="shiftborn-${GITHUB_REF_NAME}"
+          # Artifacts drop the executable bit; zip keeps it for Linux users.
+          chmod +x build/linux/shiftborn.x86_64
+          (cd build/windows && zip -qr "../../dist/$name-windows.zip" .)
+          (cd build/linux && zip -qr "../../dist/$name-linux.zip" .)
+          cp build/macos/shiftborn.zip "dist/$name-macos.zip"
+          ls -l dist
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          case "$GITHUB_REF_NAME" in v0.*) flags+=(--prerelease) ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/*.zip \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Shiftborn $GITHUB_REF_NAME" \
+            --generate-notes "${flags[@]}"
 
   # Pushes tagged releases to itch.io. Needs repo secret BUTLER_API_KEY
   # and repo variable ITCH_GAME (for example "unwin41/shiftborn").
@@ -125,3 +167,4 @@ jobs:
           for channel in web linux windows; do
             ~/butler/butler push "build/$channel" "$ITCH_GAME:$channel" --userversion "$version"
           done
+          ~/butler/butler push build/macos/shiftborn.zip "$ITCH_GAME:mac" --userversion "$version"
