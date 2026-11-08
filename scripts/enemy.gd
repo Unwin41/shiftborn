@@ -22,7 +22,7 @@ const DEATH_SCALE := Vector2(1.5, 0.3)
 ## "No form": a neutral damage source, or an enemy that resists nothing.
 const NO_FORM := -1
 ## Share of damage taken from the resisted form.
-const RESISTED_DAMAGE := 0.25
+const RESISTED_DAMAGE := 0.0
 ## Gap between the top of the sprite and the weakness mark.
 const WEAKNESS_MARK_GAP := 4.0
 const SHADOW_TEXTURE := preload("res://assets/ninja/characters/shadow.png")
@@ -44,7 +44,9 @@ const SHADOW_LIFT := 3.0
 ## On death the run spawns [member split_count] of this scene in its place.
 @export var split_scene: PackedScene
 @export var split_count: int = 2
-## Form whose attacks deal only [constant RESISTED_DAMAGE] of their damage.
+## Form this enemy is immune to: its attacks deal [constant RESISTED_DAMAGE]
+## of their damage (none). Damage without a form (Shift Burst, evolutions)
+## still lands.
 @export_enum("None:-1", "Warrior:0", "Mage:1") var resisted_form: int = NO_FORM
 
 var target: Node2D
@@ -122,6 +124,10 @@ func take_damage(amount: float, source_form: int = NO_FORM, crit: bool = false) 
 		return
 	var resisted := resists(source_form)
 	var final_amount := damage_after_resist(amount, resisted_form, source_form)
+	if final_amount <= 0.0:
+		# Immune: report the hit (an IMMUNE popup) but no flash, no damage.
+		damaged.emit(self, 0.0, resisted, false)
+		return
 	var dealt := minf(final_amount, health)
 	health -= final_amount
 	damaged.emit(self, dealt, resisted, crit)

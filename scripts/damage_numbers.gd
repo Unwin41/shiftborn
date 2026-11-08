@@ -18,6 +18,9 @@ const RESISTED_COLOR := Color(0.6, 0.6, 0.66)
 ## Critical hits: bigger and gold.
 const CRIT_COLOR := Color(1.0, 0.78, 0.2)
 const CRIT_FONT_SIZE := 16
+const IMMUNE_TEXT := "IMMUNE"
+## At most one IMMUNE popup this often, so a bolt spray does not flood it.
+const IMMUNE_INTERVAL := 0.2
 const OUTLINE_COLOR := Color(0.05, 0.03, 0.08, 0.9)
 ## Numbers start a bit above the enemy's feet.
 const START_OFFSET := Vector2(0.0, -10.0)
@@ -35,6 +38,7 @@ var _ages: PackedFloat32Array = []
 var _colors: PackedColorArray = []
 var _sizes: PackedInt32Array = []
 var _lines: Dictionary[String, TextLine] = {}
+var _immune_cooldown: float = 0.0
 
 
 static func format_amount(amount: float) -> String:
@@ -51,6 +55,9 @@ func _init() -> void:
 
 func spawn(at: Vector2, amount: float, resisted: bool = false, crit: bool = false) -> void:
 	if amount <= 0.0:
+		if resisted and _immune_cooldown <= 0.0:
+			_immune_cooldown = IMMUNE_INTERVAL
+			spawn_text(at, IMMUNE_TEXT, RESISTED_COLOR, FONT_SIZE)
 		return
 	if _positions.size() >= max_active:
 		_remove_oldest()
@@ -94,6 +101,7 @@ func oldest_position() -> Vector2:
 
 ## Ages every number by [param delta] and drops the expired ones.
 func advance(delta: float) -> void:
+	_immune_cooldown = maxf(_immune_cooldown - delta, 0.0)
 	for i in _ages.size():
 		_ages[i] += delta
 	while not _ages.is_empty() and _ages[0] >= LIFETIME:

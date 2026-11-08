@@ -17,13 +17,13 @@ const EVENTS: Dictionary[Step, StringName] = {
 const PROMPTS: Dictionary[Step, String] = {
 	Step.MOVE: "Move",
 	Step.SHIFT: "Shift",
-	Step.RESIST: "Resistance",
+	Step.RESIST: "Immunity",
 	Step.PERFECT: "Perfect shift",
 }
 const HINTS: Dictionary[Step, String] = {
 	Step.MOVE: "WASD, arrow keys or the left stick. You attack on your own.",
 	Step.SHIFT: "Press Space or A to switch between warrior and mage.",
-	Step.RESIST: "Skulls shrug off magic. Kill this one as the warrior. The diamond above an enemy shows the form that beats it.",
+	Step.RESIST: "Skulls are immune to magic. Kill this one as the warrior. The diamond above an enemy shows the only form that hurts it.",
 	Step.PERFECT: "Shift just as an enemy is about to hit you: time slows and you cannot be hurt.",
 }
 

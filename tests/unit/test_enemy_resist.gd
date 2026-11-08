@@ -1,8 +1,26 @@
 extends TestCase
 
 
-func test_wrong_form_deals_a_quarter() -> void:
-	assert_almost_eq(Enemy.damage_after_resist(4.0, Player.Form.MAGE, Player.Form.MAGE), 4.0 * Enemy.RESISTED_DAMAGE)
+func test_wrong_form_deals_no_damage() -> void:
+	assert_almost_eq(Enemy.damage_after_resist(4.0, Player.Form.MAGE, Player.Form.MAGE), 0.0)
+
+
+func test_immune_enemy_keeps_its_health_but_still_reports_the_hit() -> void:
+	var skull := preload("res://scenes/enemy_skull.tscn").instantiate() as Enemy
+	skull.health = skull.max_health
+	var reports := []
+	skull.damaged.connect(func(_enemy: Enemy, amount: float, resisted: bool, _crit: bool) -> void: reports.append([amount, resisted]))
+	skull.take_damage(3.0, Player.Form.MAGE)
+	assert_almost_eq(skull.health, skull.max_health)
+	assert_eq(reports, [[0.0, true]])
+	skull.free()
+
+
+func test_immune_hits_show_an_immune_popup() -> void:
+	var numbers := DamageNumbers.new()
+	numbers.spawn(Vector2.ZERO, 0.0, true)
+	assert_eq(numbers.count(), 1, "an immune hit should still show something")
+	numbers.free()
 
 
 func test_right_form_deals_full_damage() -> void:

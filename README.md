@@ -40,7 +40,7 @@ The first run starts with a short guided tutorial (move, shift, resistance, perf
 Attacks are automatic. Mini-bosses arrive at 1:45 (a cyclops demon) and 3:15 (a giant spirit); at 4:30 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.
 
 Why shift:
-- **Resistances.** Skulls shrug off magic and spirits shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.
+- **Immunities.** Skulls are immune to magic and spirits to the axe: the wrong form deals no damage at all (IMMUNE). The diamond above an enemy shows the color of the only form that hurts it: orange for the warrior, purple for the mage. Shift Burst and evolutions hit everything.
 - **Energy.** The active form tires and its damage drops to half; the resting form recovers twice as fast. The bars at the bottom show both.
 - **The horde.** Spiders swarm, slimes split in two, eyes keep their distance and shoot (they resist the axe), and beasts stop, draw a red line and charge along it (they resist magic).
 - **Perfect shift.** Shift just as an enemy or a bolt is about to hit you: time slows, you are briefly invulnerable and the new form gets a burst of energy. Once every 2 seconds.

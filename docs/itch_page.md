@@ -22,7 +22,7 @@ in `docs/media/`.
 
 You are two people at once. The **warrior** is slow and spins a heavy axe around himself. The **mage** is fast and snipes the nearest enemy with bolts. Press Space (or A) to swap between them at any moment, and keep swapping, because the horde is built to punish whoever stays the same:
 
-- **Resistances.** Skulls shrug off magic, spirits shrug off the axe. The diamond above an enemy shows the form that beats it.
+- **Immunities.** Skulls are immune to magic, spirits to the axe. The diamond above an enemy shows the only form that hurts it.
 - **Energy.** The form you are using tires out and its damage drops; the resting form recovers.
 - **Perfect shift.** Shift just as something is about to hit you: time slows, you cannot be hurt for a moment and the new form gets a burst of energy.
 - **Evolutions.** Max out one warrior and one mage upgrade and they fuse into a hybrid power that works in both forms: Arcane Orbit, Storm Cleaver, Blood Pact and Twin Soul.
