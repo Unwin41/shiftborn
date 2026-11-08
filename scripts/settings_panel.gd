@@ -15,6 +15,7 @@ var _settings: GameSettings
 var _music_slider: HSlider
 var _sfx_slider: HSlider
 var _fullscreen_button: Button
+var _tutorial_button: Button
 var _back_button: Button
 
 
@@ -29,6 +30,9 @@ func _init() -> void:
 	_fullscreen_button = UiKit.button(_fullscreen_text())
 	_fullscreen_button.pressed.connect(_toggle_fullscreen)
 	add_child(_center(_fullscreen_button))
+	_tutorial_button = UiKit.button(_tutorial_text())
+	_tutorial_button.pressed.connect(_toggle_tutorial)
+	add_child(_center(_tutorial_button))
 	_back_button = UiKit.button("Back")
 	_back_button.pressed.connect(go_back)
 	add_child(_center(_back_button))
@@ -48,6 +52,16 @@ func go_back() -> void:
 func _toggle_fullscreen() -> void:
 	_settings.set_fullscreen(not _settings.fullscreen)
 	_fullscreen_button.text = _fullscreen_text()
+
+
+## On means the next run starts with the guided tutorial.
+func _toggle_tutorial() -> void:
+	_settings.tutorial_done = not _settings.tutorial_done
+	_tutorial_button.text = _tutorial_text()
+
+
+func _tutorial_text() -> String:
+	return ("Tutorial: %s" % ("Off" if _settings.tutorial_done else "On")).to_upper()
 
 
 func _fullscreen_text() -> String:

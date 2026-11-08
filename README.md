@@ -22,8 +22,11 @@ Desktop builds run with extra effects: HDR glow and a light on every bolt. The b
 |---|---|---|
 | Move | WASD / arrow keys | Left stick / D-pad |
 | Shift form | Space / Shift | A / RB |
-| Restart | R / Enter | Start |
+| Pause | Esc / P | Start |
+| Retry after a run | R | Retry button |
 | Mute | M | |
+
+The first run starts with a short guided tutorial (move, shift, resistance, perfect shift). Skip it from the pause menu, or turn it back on in Settings.
 
 Attacks are automatic. Mini-bosses arrive at 1:45 (a cyclops demon) and 3:15 (a giant spirit); at 4:30 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.
 

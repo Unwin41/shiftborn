@@ -16,6 +16,8 @@ static var _current: GameSettings
 var music_volume: float = DEFAULT_VOLUME
 var sfx_volume: float = DEFAULT_VOLUME
 var fullscreen: bool = false
+## False until the guided first run is finished or skipped.
+var tutorial_done: bool = false
 
 
 ## The shared settings, loaded from disk and applied on first call.
@@ -77,6 +79,7 @@ func save_to(path: String) -> Error:
 	config.set_value(SECTION, "music_volume", music_volume)
 	config.set_value(SECTION, "sfx_volume", sfx_volume)
 	config.set_value(SECTION, "fullscreen", fullscreen)
+	config.set_value(SECTION, "tutorial_done", tutorial_done)
 	return config.save(path)
 
 
@@ -91,6 +94,7 @@ func load_from(path: String) -> void:
 	music_volume = clampf(float(config.get_value(SECTION, "music_volume", music_volume)), 0.0, 1.0)
 	sfx_volume = clampf(float(config.get_value(SECTION, "sfx_volume", sfx_volume)), 0.0, 1.0)
 	fullscreen = bool(config.get_value(SECTION, "fullscreen", fullscreen))
+	tutorial_done = bool(config.get_value(SECTION, "tutorial_done", tutorial_done))
 
 
 func _set_bus_volume(bus: StringName, linear: float) -> void:

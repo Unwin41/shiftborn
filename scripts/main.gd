@@ -47,6 +47,7 @@ var upgrade_pool := UpgradePool.new(UpgradeCatalog.build())
 var level_up_menu: LevelUpMenu
 var pause_menu: PauseMenu
 var results_screen: ResultsScreen
+var tutorial: Tutorial
 var _run_over: bool = false
 var _rng := RandomNumberGenerator.new()
 ## Level-ups earned but not picked yet; several can arrive in one frame.
@@ -89,6 +90,29 @@ func _ready() -> void:
 	results_screen.main_menu_requested.connect(go_to_title)
 	if BOSS_FLAG in OS.get_cmdline_user_args():
 		spawn_boss.call_deferred()
+	elif not GameSettings.current().tutorial_done:
+		_start_tutorial()
+
+
+## The guided first run: waves and the run clock wait until it ends.
+func _start_tutorial() -> void:
+	spawner.stop()
+	tutorial = Tutorial.new()
+	tutorial.setup(self, player)
+	add_child(tutorial)
+	tutorial.finished.connect(_on_tutorial_finished)
+	pause_menu.set_tutorial_active(true)
+	pause_menu.skip_tutorial_requested.connect(tutorial.skip)
+
+
+func _on_tutorial_finished() -> void:
+	var settings := GameSettings.current()
+	settings.tutorial_done = true
+	settings.save()
+	pause_menu.set_tutorial_active(false)
+	player.heal(player.max_health)
+	spawner.reset()
+	spawner.start()
 
 
 func _process(_delta: float) -> void:
@@ -114,7 +138,7 @@ func _process(_delta: float) -> void:
 func spawn_boss() -> void:
 	if boss != null or _run_over:
 		return
-	boss = _spawn_enemy(BOSS_SCENE, BOSS_SPAWN_DISTANCE) as Boss
+	boss = spawn_enemy(BOSS_SCENE, BOSS_SPAWN_DISTANCE) as Boss
 	boss.died.connect(_on_boss_died)
 	AudioManager.play(&"boss_roar")
 	AudioManager.play_music(AudioManager.BOSS_MUSIC, 0.5)
@@ -122,14 +146,14 @@ func spawn_boss() -> void:
 
 func _spawn_due_mini_bosses() -> void:
 	while _next_mini_boss < MINI_BOSSES.size() and spawner.elapsed >= MINI_BOSSES[_next_mini_boss].time:
-		_spawn_enemy(MINI_BOSSES[_next_mini_boss].scene, MINI_BOSS_SPAWN_DISTANCE)
+		spawn_enemy(MINI_BOSSES[_next_mini_boss].scene, MINI_BOSS_SPAWN_DISTANCE)
 		AudioManager.play(&"boss_roar")
 		_next_mini_boss += 1
 
 
 ## Adds [param scene] like the spawner would (target, group, signals) at a
 ## random point [param distance] away from the player.
-func _spawn_enemy(scene: PackedScene, distance: float) -> Enemy:
+func spawn_enemy(scene: PackedScene, distance: float) -> Enemy:
 	var enemy := scene.instantiate() as Enemy
 	enemy.target = player
 	enemy.add_to_group(spawner.enemy_group)

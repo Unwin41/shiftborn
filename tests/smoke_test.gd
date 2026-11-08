@@ -21,6 +21,9 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await _check_title()
+	await _check_tutorial()
+	# The rest of the smoke test plays a normal run.
+	GameSettings.current().tutorial_done = true
 	var main := MAIN_SCENE.instantiate()
 	root.add_child(main)
 	var player: Player = main.get_node("Player")
@@ -38,6 +41,8 @@ func _run() -> void:
 	_check(kills_as_mage > 0, "mage killed nothing")
 	_check(main.experience.level > 1, "never leveled up")
 	_check_perfect_shift(player, spawner)
+	# A Shift Burst from that shift can kill and level up; finish it.
+	await _drain_level_ups(main.level_up_menu)
 	_check(not paused, "tree still paused after the run")
 	print("smoke: elapsed %.1fs, alive %d, knight kills %d, mage kills %d, hp %.1f, level %d" % [
 		spawner.elapsed, spawner.alive_count(), kills_as_knight, kills_as_mage, player.health,
@@ -103,6 +108,31 @@ func _check_perfect_shift(player: Player, spawner: HordeSpawner) -> void:
 	_check(player.is_invulnerable(), "perfect shift gave no invulnerability")
 
 
+## A first run starts in the tutorial with the waves held back; moving
+## and shifting advance it, and skipping starts the waves.
+func _check_tutorial() -> void:
+	GameSettings.current().tutorial_done = false
+	var main: Run = MAIN_SCENE.instantiate()
+	root.add_child(main)
+	await physics_frame
+	var spawner: HordeSpawner = main.get_node("HordeSpawner")
+	_check(main.tutorial != null, "first run has no tutorial")
+	_check(not spawner.running, "waves run during the tutorial")
+	var player: Player = main.get_node("Player")
+	player.global_position += Vector2(TutorialSteps.MOVE_DISTANCE + 10.0, 0)
+	for frame in 3:
+		await physics_frame
+	player.shift()
+	await physics_frame
+	_check(main.tutorial._steps.current == TutorialSteps.Step.RESIST, "tutorial at step %d, expected RESIST" % main.tutorial._steps.current)
+	main.tutorial.skip()
+	await physics_frame
+	_check(spawner.running, "waves did not start after skipping the tutorial")
+	_check(GameSettings.current().tutorial_done, "skipping did not mark the tutorial done")
+	main.queue_free()
+	await physics_frame
+
+
 ## The title builds its menu and leaves the tree unpaused.
 func _check_title() -> void:
 	var title := TITLE_SCENE.instantiate()
@@ -123,7 +153,17 @@ func _kills_during(main: Node, seconds: int) -> int:
 		if menu.visible:
 			menu.choose(0)
 		await physics_frame
+	await _drain_level_ups(menu)
 	return int(main.kills) - before
+
+
+## A level-up on the last frame would leave the tree paused for the
+## checks that follow; pick until none is pending.
+func _drain_level_ups(menu: LevelUpMenu) -> void:
+	while menu.visible or paused:
+		if menu.visible:
+			menu.choose(0)
+		await physics_frame
 
 
 func _check(condition: bool, message: String) -> void:
