@@ -106,3 +106,14 @@ func test_reset_clears_levels() -> void:
 	pool.apply(&"a")
 	pool.reset()
 	assert_eq(pool.level_of(&"a"), 0)
+
+
+func test_owned_lists_only_upgrades_with_levels_in_add_order() -> void:
+	var pool := UpgradePool.new([_make(&"a"), _make(&"b"), _make(&"c")])
+	pool.apply(&"c")
+	pool.apply(&"a")
+	pool.apply(&"a")
+	var owned := pool.owned()
+	assert_eq(owned.size(), 2)
+	assert_eq(owned[0].id, &"a")
+	assert_eq(owned[1].id, &"c")

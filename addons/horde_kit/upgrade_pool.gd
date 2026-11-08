@@ -85,6 +85,15 @@ func apply(id: StringName) -> int:
 	return new_level
 
 
+## Upgrades with at least one level, in the order they were added.
+func owned() -> Array[Upgrade]:
+	var result: Array[Upgrade] = []
+	for id in _upgrades:
+		if level_of(id) > 0:
+			result.append(_upgrades[id])
+	return result
+
+
 func reset() -> void:
 	for id in _levels:
 		_levels[id] = 0

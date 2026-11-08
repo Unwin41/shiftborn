@@ -24,11 +24,14 @@ const HEALTH_GROWTH_SECONDS := 150.0
 const OFFER_COUNT := 3
 const HURT_HITSTOP := 0.06
 const DEATH_HITSTOP := 0.2
+const TITLE_SCENE := "res://scenes/title.tscn"
+## Real seconds between the run ending and the results screen, so the
+## death or the boss's fall plays out first.
+const RESULTS_DELAY := 1.2
 
 @onready var player: Player = $Player
 @onready var spawner: HordeSpawner = $HordeSpawner
 @onready var status_label: Label = %StatusLabel
-@onready var center_label: Label = %CenterLabel
 @onready var xp_bar: XpBar = %XpBar
 @onready var energy_bars: EnergyBars = %EnergyBars
 @onready var boss_bar: BossBar = %BossBar
@@ -39,6 +42,8 @@ var kills: int = 0
 var experience := Experience.new()
 var upgrade_pool := UpgradePool.new(UpgradeCatalog.build())
 var level_up_menu: LevelUpMenu
+var pause_menu: PauseMenu
+var results_screen: ResultsScreen
 var _run_over: bool = false
 var _rng := RandomNumberGenerator.new()
 ## Level-ups earned but not picked yet; several can arrive in one frame.
@@ -64,12 +69,20 @@ func _ready() -> void:
 	AudioManager.play_music(AudioManager.RUN_MUSIC)
 	spawner.enemy_spawned.connect(_on_enemy_spawned)
 	spawner.enemy_spawned.connect(_scale_enemy_health)
-	center_label.hide()
+	GameSettings.current()
 	_rng.randomize()
 	level_up_menu = LevelUpMenu.new()
 	add_child(level_up_menu)
 	level_up_menu.chosen.connect(_on_upgrade_chosen)
 	level_up_menu.closed.connect(_open_level_up)
+	pause_menu = PauseMenu.new()
+	add_child(pause_menu)
+	pause_menu.restart_requested.connect(restart)
+	pause_menu.main_menu_requested.connect(go_to_title)
+	results_screen = ResultsScreen.new()
+	add_child(results_screen)
+	results_screen.retry_requested.connect(restart)
+	results_screen.main_menu_requested.connect(go_to_title)
 	if BOSS_FLAG in OS.get_cmdline_user_args():
 		spawn_boss.call_deferred()
 
@@ -128,13 +141,25 @@ func _on_boss_died(_boss: Enemy) -> void:
 		return
 	boss_bar.show_boss(0.0, 1.0, 0)
 	AudioManager.play(&"run_win")
-	_end_run("YOU WIN")
+	_end_run(true)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _run_over and event.is_action_pressed(&"restart"):
-		get_tree().paused = false
-		get_tree().reload_current_scene()
+	if event.is_action_pressed(PauseMenu.PAUSE_ACTION) and PauseMenu.can_open(_run_over, get_tree().paused):
+		get_viewport().set_input_as_handled()
+		pause_menu.open()
+	elif _run_over and event.is_action_pressed(&"restart"):
+		restart()
+
+
+func restart() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+func go_to_title() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file(TITLE_SCENE)
 
 
 func _on_enemy_spawned(enemy: Node2D) -> void:
@@ -206,10 +231,10 @@ func _on_upgrade_chosen(upgrade: Upgrade) -> void:
 
 func _on_player_died() -> void:
 	_hitstop.trigger(DEATH_HITSTOP)
-	_end_run("YOU DIED")
+	_end_run(false)
 
 
-func _end_run(title: String) -> void:
+func _end_run(won: bool) -> void:
 	AudioManager.stop_music(1.5)
 	_run_over = true
 	get_tree().call_group(EnemyBolt.GROUP, &"queue_free")
@@ -220,5 +245,14 @@ func _end_run(title: String) -> void:
 	spawner.stop()
 	player.is_dead = true
 	get_tree().call_group(spawner.enemy_group, &"set_physics_process", false)
-	center_label.text = ("%s\n%s  -  %d kills\n\nR / Start to retry" % [title, format_time(spawner.elapsed), kills]).to_upper()
-	center_label.show()
+	# Real time, ignoring hitstop's time scale. A bound method rather than
+	# an await, so a restart during the delay drops the call cleanly.
+	get_tree().create_timer(RESULTS_DELAY, true, false, true).timeout.connect(_show_results.bind(won, spawner.elapsed))
+
+
+func _show_results(won: bool, seconds: float) -> void:
+	var owned := upgrade_pool.owned()
+	var levels: Array[int] = []
+	for upgrade in owned:
+		levels.append(upgrade_pool.level_of(upgrade.id))
+	results_screen.open(won, seconds, kills, experience.level, owned, levels)

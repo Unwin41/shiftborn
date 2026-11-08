@@ -7,6 +7,7 @@ extends SceneTree
 ## takes damage, and that killing it wins the run.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
+const TITLE_SCENE := preload("res://scenes/title.tscn")
 const SECONDS_PER_PHASE := 15
 ## Long enough for at least one resistance swap and two bolt rings.
 const BOSS_SECONDS := 12
@@ -19,6 +20,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	await _check_title()
 	var main := MAIN_SCENE.instantiate()
 	root.add_child(main)
 	var player: Player = main.get_node("Player")
@@ -74,7 +76,24 @@ func _check_boss(main: Run, player: Player) -> void:
 	for frame in 5:
 		await physics_frame
 	_check(main._run_over, "killing the boss did not end the run")
-	_check(main.center_label.text.begins_with("YOU WIN"), "run end text is %s" % main.center_label.text)
+	for frame in int((Run.RESULTS_DELAY + 0.5) * 60):
+		await physics_frame
+	_check(main.results_screen.visible, "results screen not shown after the run")
+	_check(main.results_screen.title() == "YOU WIN", "results title is %s" % main.results_screen.title())
+	_check(main.results_screen.upgrade_slot_count() > 0, "results list no upgrades")
+
+
+## The title builds its menu and leaves the tree unpaused.
+func _check_title() -> void:
+	var title := TITLE_SCENE.instantiate()
+	root.add_child(title)
+	for frame in 10:
+		await process_frame
+	var buttons := title.find_children("*", "Button", true, false)
+	_check(buttons.size() >= 3, "title has %d buttons" % buttons.size())
+	_check(not paused, "title paused the tree")
+	title.queue_free()
+	await process_frame
 
 
 func _kills_during(main: Node, seconds: int) -> int:

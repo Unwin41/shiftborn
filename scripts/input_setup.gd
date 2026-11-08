@@ -11,7 +11,8 @@ func _enter_tree() -> void:
 	_add_action(&"move_up", [KEY_W, KEY_UP], [JOY_BUTTON_DPAD_UP], JOY_AXIS_LEFT_Y, -1.0)
 	_add_action(&"move_down", [KEY_S, KEY_DOWN], [JOY_BUTTON_DPAD_DOWN], JOY_AXIS_LEFT_Y, 1.0)
 	_add_action(&"shift_form", [KEY_SPACE, KEY_SHIFT], [JOY_BUTTON_A, JOY_BUTTON_RIGHT_SHOULDER])
-	_add_action(&"restart", [KEY_R, KEY_ENTER], [JOY_BUTTON_START])
+	_add_action(&"restart", [KEY_R], [])
+	_add_action(&"pause", [KEY_ESCAPE, KEY_P], [JOY_BUTTON_START])
 	_add_action(&"mute", [KEY_M], [])
 
 
