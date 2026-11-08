@@ -1,17 +1,31 @@
 class_name Bolt
 extends Area2D
-## Mage projectile. Flies straight, hits the first enemy it touches.
+## Mage projectile. Flies straight and damages enemies it touches.
+## [member chain] hits redirect it to the nearest unhit enemy nearby;
+## after that, [member pierce] hits let it fly on through.
 
 const COLOR := Color("e2c4ff")
+const CHAIN_COLOR := Color("fff3a0")
 const RADIUS := 3.0
+## How far a chain hit looks for the next enemy.
+const CHAIN_RANGE := 90.0
+## Flight time granted after each chain jump.
+const CHAIN_LIFETIME := 0.5
 
 @export var speed: float = 320.0
 @export var lifetime: float = 1.2
 
 var direction: Vector2 = Vector2.RIGHT
 var damage: float = 1.0
+var pierce: int = 0
+var chain: int = 0
+## Group searched for chain targets. The player sets it.
+var enemy_group: StringName = &"horde_enemy"
 
 var _spent: bool = false
+var _chained: bool = false
+## Instance ids of enemies this bolt already hit.
+var _hit: Dictionary[int, bool] = {}
 
 
 func _ready() -> void:
@@ -28,10 +42,45 @@ func _physics_process(delta: float) -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if _spent or not area.has_method("take_damage"):
 		return
-	_spent = true
+	var id := area.get_instance_id()
+	if _hit.has(id):
+		return
+	_hit[id] = true
+	var hit_position := area.global_position
 	area.take_damage(damage)
+	if chain > 0 and _jump_from(hit_position):
+		chain -= 1
+		return
+	if pierce > 0:
+		pierce -= 1
+		return
+	_spent = true
 	queue_free()
 
 
+## Aims at the nearest unhit enemy within [constant CHAIN_RANGE] of
+## [param origin]. Returns false when there is none.
+func _jump_from(origin: Vector2) -> bool:
+	var best: Node2D = null
+	var best_distance := CHAIN_RANGE * CHAIN_RANGE
+	for node in get_tree().get_nodes_in_group(enemy_group):
+		var enemy := node as Node2D
+		if enemy == null or _hit.has(enemy.get_instance_id()) or enemy.is_queued_for_deletion():
+			continue
+		var distance := enemy.global_position.distance_squared_to(origin)
+		if distance < best_distance:
+			best_distance = distance
+			best = enemy
+	if best == null:
+		return false
+	global_position = origin
+	direction = origin.direction_to(best.global_position)
+	lifetime = CHAIN_LIFETIME
+	if not _chained:
+		_chained = true
+		queue_redraw()
+	return true
+
+
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, RADIUS, COLOR)
+	draw_circle(Vector2.ZERO, RADIUS, CHAIN_COLOR if _chained else COLOR)

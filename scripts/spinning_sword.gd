@@ -26,6 +26,11 @@ const HOLD_ANGLE := 0.35
 
 ## Outer radius of the trail. The owner sets it to its attack radius.
 @export var reach: float = 44.0
+## Blades evenly spaced around the spin. Each one hits every enemy it passes.
+@export_range(1, 8) var blade_count: int = 1:
+	set(value):
+		blade_count = maxi(value, 1)
+		queue_redraw()
 
 var facing_left: bool = false:
 	set(value):
@@ -49,6 +54,17 @@ static func angle_in_sweep(angle: float, from_angle: float, to_angle: float) -> 
 	if span >= TAU:
 		return true
 	return fposmod(angle - low, TAU) < span
+
+
+## Indexes of the [param count] evenly spaced blades whose sweep from
+## [param from_angle] to [param to_angle] (blade 0) covered [param angle].
+static func blades_in_sweep(angle: float, from_angle: float, to_angle: float, count: int) -> Array[int]:
+	var hits: Array[int] = []
+	for i in count:
+		var offset := TAU * i / count
+		if angle_in_sweep(angle, from_angle + offset, to_angle + offset):
+			hits.append(i)
+	return hits
 
 
 ## Starts a full turn. Spins clockwise when facing right, and mirrored
@@ -90,19 +106,28 @@ func _advance_spin(delta: float) -> void:
 
 
 func _draw() -> void:
-	_draw_trail()
+	for i in blade_count:
+		_draw_trail(_angle + TAU * i / blade_count)
 	if is_spinning:
-		# The texture points up (-Y); rotate so the blade points outward.
-		draw_set_transform(Vector2.from_angle(_angle) * GRIP_RADIUS, _angle + PI / 2.0)
+		for i in blade_count:
+			var angle := _angle + TAU * i / blade_count
+			# The texture points up (-Y); rotate so the blade points outward.
+			draw_set_transform(Vector2.from_angle(angle) * GRIP_RADIUS, angle + PI / 2.0)
+			_draw_blade()
 	else:
 		var side := -1.0 if facing_left else 1.0
 		draw_set_transform(Vector2(HOLD_OFFSET.x * side, HOLD_OFFSET.y), HOLD_ANGLE * side, Vector2(side, 1.0))
-	# Grip (bottom of the texture) sits at the transform origin.
-	draw_texture(TEXTURE, Vector2(-TEXTURE.get_width() * 0.5, -TEXTURE.get_height()))
+		_draw_blade()
 	draw_set_transform(Vector2.ZERO)
 
 
-func _draw_trail() -> void:
+## Grip (bottom of the texture) sits at the current transform origin.
+func _draw_blade() -> void:
+	draw_texture(TEXTURE, Vector2(-TEXTURE.get_width() * 0.5, -TEXTURE.get_height()))
+
+
+## [param blade_angle] is where the blade leading this trail points.
+func _draw_trail(blade_angle: float) -> void:
 	var strength := 1.0 if is_spinning else _trail_fade / TRAIL_FADE_TIME
 	var swept_arc := TAU * (_spin_time / SPIN_TIME)
 	if strength <= 0.0 or swept_arc <= 0.0:
@@ -111,14 +136,14 @@ func _draw_trail() -> void:
 	var points := PackedVector2Array()
 	var colors := PackedColorArray()
 	for i in TRAIL_SEGMENTS + 1:
-		_append_trail_point(points, colors, float(i) / TRAIL_SEGMENTS, arc, reach, strength)
+		_append_trail_point(points, colors, blade_angle, float(i) / TRAIL_SEGMENTS, arc, reach, strength)
 	for i in range(TRAIL_SEGMENTS, -1, -1):
-		_append_trail_point(points, colors, float(i) / TRAIL_SEGMENTS, arc, TRAIL_INNER_RADIUS, strength * TRAIL_INNER_ALPHA)
+		_append_trail_point(points, colors, blade_angle, float(i) / TRAIL_SEGMENTS, arc, TRAIL_INNER_RADIUS, strength * TRAIL_INNER_ALPHA)
 	draw_polygon(points, colors)
 
 
 ## [param t] runs from 0 at the tail of the trail to 1 at the blade.
-func _append_trail_point(points: PackedVector2Array, colors: PackedColorArray, t: float, arc: float, radius: float, strength: float) -> void:
-	var angle := _angle - _direction * arc * (1.0 - t)
+func _append_trail_point(points: PackedVector2Array, colors: PackedColorArray, blade_angle: float, t: float, arc: float, radius: float, strength: float) -> void:
+	var angle := blade_angle - _direction * arc * (1.0 - t)
 	points.append(Vector2.from_angle(angle) * radius)
 	colors.append(Color(TRAIL_COLOR, TRAIL_COLOR.a * t * strength))

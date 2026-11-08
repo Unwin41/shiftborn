@@ -45,3 +45,17 @@ func test_consecutive_sweeps_cover_each_angle_once() -> void:
 			if SpinningSword.angle_in_sweep(probe, from, to):
 				hits += 1
 		assert_eq(hits, 1, "probe %s" % probe)
+
+
+func test_single_blade_hits_inside_sweep() -> void:
+	assert_eq(SpinningSword.blades_in_sweep(0.5, 0.2, 0.8, 1), [0] as Array[int])
+	assert_eq(SpinningSword.blades_in_sweep(2.0, 0.2, 0.8, 1), [] as Array[int])
+
+
+func test_second_blade_sweeps_the_opposite_side() -> void:
+	# Blade 1 sits PI behind blade 0, so it covers 0.2+PI .. 0.8+PI.
+	assert_eq(SpinningSword.blades_in_sweep(0.5 + PI, 0.2, 0.8, 2), [1] as Array[int])
+
+
+func test_full_turn_hits_once_per_blade() -> void:
+	assert_eq(SpinningSword.blades_in_sweep(1.0, 0.0, TAU, 3), [0, 1, 2] as Array[int])

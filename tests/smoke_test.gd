@@ -1,7 +1,8 @@
 extends SceneTree
 ## Integration smoke test: runs the real main scene with no input.
 ## Usage: godot --headless --fixed-fps 60 -s res://tests/smoke_test.gd
-## Checks that enemies spawn, reach the idle player and both forms kill.
+## Checks that enemies spawn, reach the idle player, both forms kill and
+## level-ups open the card menu (always picking the first card).
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const SECONDS_PER_PHASE := 15
@@ -29,8 +30,11 @@ func _run() -> void:
 	_check(player.form == Player.Form.MAGE, "shift did not switch to mage")
 	var kills_as_mage := await _kills_during(main, SECONDS_PER_PHASE)
 	_check(kills_as_mage > 0, "mage killed nothing")
-	print("smoke: elapsed %.1fs, alive %d, knight kills %d, mage kills %d, hp %.1f" % [
-		spawner.elapsed, spawner.alive_count(), kills_as_knight, kills_as_mage, player.health])
+	_check(main.experience.level > 1, "never leveled up")
+	_check(not paused, "tree still paused after the run")
+	print("smoke: elapsed %.1fs, alive %d, knight kills %d, mage kills %d, hp %.1f, level %d" % [
+		spawner.elapsed, spawner.alive_count(), kills_as_knight, kills_as_mage, player.health,
+		main.experience.level])
 	for error in _errors:
 		printerr("SMOKE FAIL: ", error)
 	quit(1 if not _errors.is_empty() else 0)
@@ -38,7 +42,10 @@ func _run() -> void:
 
 func _kills_during(main: Node, seconds: int) -> int:
 	var before: int = main.kills
+	var menu: LevelUpMenu = main.level_up_menu
 	for frame in seconds * 60:
+		if menu.visible:
+			menu.choose(0)
 		await physics_frame
 	return int(main.kills) - before
 

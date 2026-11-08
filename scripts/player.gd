@@ -21,6 +21,11 @@ const SHIFT_POP_SCALE := 1.35
 const SHIFT_POP_TIME := 0.18
 ## Small delay before the first attack after a shift, so shifting feels snappy.
 const SHIFT_ATTACK_DELAY := 0.1
+## Angle between bolts when the mage casts several at once.
+const MULTISHOT_SPREAD := 0.2
+const SHIFT_BURST_RADIUS := 64.0
+## Minimum time between two Shift Bursts, so shift spam is not free damage.
+const SHIFT_BURST_COOLDOWN := 2.0
 
 @export var move_speed: float = 110.0
 @export var max_health: float = 10.0
@@ -40,6 +45,19 @@ const SHIFT_ATTACK_DELAY := 0.1
 @export var mage_range: float = 240.0
 @export var mage_speed_multiplier: float = 1.15
 
+@export_group("Upgrades")
+## HP healed per sword hit.
+@export var lifesteal: float = 0.0
+## Knockback impulse (px/s) per sword hit.
+@export var knockback: float = 0.0
+@export var blade_count: int = 1
+@export var bolt_count: int = 1
+@export var bolt_pierce: int = 0
+@export var bolt_chain: int = 0
+@export var regen_per_second: float = 0.0
+## Damage dealt around the player on shift. 0 disables the burst.
+@export var shift_burst_damage: float = 0.0
+
 var form: Form = Form.KNIGHT
 var health: float
 var is_dead: bool = false
@@ -47,8 +65,9 @@ var is_dead: bool = false
 var _attack_timer: float = 0.0
 var _shift_timer: float = 0.0
 var _hurt_flash: float = 0.0
-## Enemies already hit by the current sword spin (instance id -> true).
-var _sword_hits: Dictionary[int, bool] = {}
+var _burst_timer: float = 0.0
+## Blades that already hit each enemy this spin (instance id -> bitmask).
+var _sword_hits: Dictionary[int, int] = {}
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 @onready var _sword: SpinningSword = $Sword
@@ -57,7 +76,7 @@ var _sword_hits: Dictionary[int, bool] = {}
 func _ready() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
-	_sword.reach = knight_radius
+	refresh_stats()
 	_sword.swept.connect(_on_sword_swept)
 	_apply_form_visuals()
 
@@ -67,7 +86,10 @@ func _physics_process(delta: float) -> void:
 		_sprite.pause()
 		return
 	_shift_timer = maxf(_shift_timer - delta, 0.0)
+	_burst_timer = maxf(_burst_timer - delta, 0.0)
 	_update_hurt_flash(delta)
+	if regen_per_second > 0.0:
+		heal(regen_per_second * delta)
 	if Input.is_action_just_pressed(&"shift_form") and _shift_timer == 0.0:
 		shift()
 	var direction := Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down")
@@ -84,6 +106,7 @@ func shift() -> void:
 	_shift_timer = shift_cooldown
 	_attack_timer = SHIFT_ATTACK_DELAY
 	_apply_form_visuals()
+	_shift_burst()
 	_sprite.scale = Vector2.ONE * SHIFT_POP_SCALE
 	create_tween().tween_property(_sprite, "scale", Vector2.ONE, SHIFT_POP_TIME) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -100,6 +123,23 @@ func take_damage(amount: float) -> void:
 	if health == 0.0:
 		is_dead = true
 		died.emit()
+
+
+func heal(amount: float) -> void:
+	if is_dead or amount <= 0.0 or health >= max_health:
+		return
+	health = minf(health + amount, max_health)
+	health_changed.emit(health, max_health)
+
+
+## Pushes upgraded stats to child nodes. Safe to call before _ready.
+func refresh_stats() -> void:
+	health = minf(health, max_health)
+	if not is_node_ready():
+		return
+	_sword.reach = knight_radius
+	_sword.blade_count = blade_count
+	health_changed.emit(health, max_health)
 
 
 func form_name() -> String:
@@ -150,8 +190,8 @@ func _knight_pulse() -> void:
 	_sword.spin()
 
 
-## Hits enemies in range whose direction the blade just swept over.
-## Each enemy is hit at most once per spin.
+## Hits enemies in range whose direction a blade just swept over.
+## Each blade hits each enemy at most once per spin.
 func _on_sword_swept(from_angle: float, to_angle: float) -> void:
 	for node in get_tree().get_nodes_in_group(enemy_group):
 		var enemy := node as Node2D
@@ -161,21 +201,51 @@ func _on_sword_swept(from_angle: float, to_angle: float) -> void:
 		if offset.length() > knight_radius:
 			continue
 		var id := enemy.get_instance_id()
-		if _sword_hits.has(id) or not SpinningSword.angle_in_sweep(offset.angle(), from_angle, to_angle):
-			continue
-		_sword_hits[id] = true
-		enemy.take_damage(knight_damage)
+		var mask: int = _sword_hits.get(id, 0)
+		for blade in SpinningSword.blades_in_sweep(offset.angle(), from_angle, to_angle, blade_count):
+			if mask & (1 << blade):
+				continue
+			mask |= 1 << blade
+			_sword_hit(enemy, offset)
+		_sword_hits[id] = mask
+
+
+func _sword_hit(enemy: Node2D, offset: Vector2) -> void:
+	# Another blade or a Shift Burst may have killed it earlier this frame.
+	if enemy is Enemy and enemy.health <= 0.0:
+		return
+	if knockback > 0.0 and enemy.has_method("knockback"):
+		enemy.knockback(offset.normalized() * knockback)
+	enemy.take_damage(knight_damage)
+	heal(lifesteal)
+
+
+func _shift_burst() -> void:
+	if shift_burst_damage <= 0.0 or _burst_timer > 0.0:
+		return
+	_burst_timer = SHIFT_BURST_COOLDOWN
+	add_child(ShiftBurstFx.create(SHIFT_BURST_RADIUS))
+	for node in get_tree().get_nodes_in_group(enemy_group):
+		var enemy := node as Node2D
+		if enemy != null and enemy.has_method("take_damage") \
+				and enemy.global_position.distance_to(global_position) <= SHIFT_BURST_RADIUS:
+			enemy.take_damage(shift_burst_damage)
 
 
 func _mage_bolt() -> void:
 	var target := _nearest_enemy(mage_range)
 	if target == null:
 		return
-	var bolt := BOLT_SCENE.instantiate() as Bolt
-	bolt.direction = global_position.direction_to(target.global_position)
-	bolt.damage = mage_damage
-	get_parent().add_child(bolt)
-	bolt.global_position = global_position
+	var aim := global_position.direction_to(target.global_position)
+	for i in bolt_count:
+		var bolt := BOLT_SCENE.instantiate() as Bolt
+		bolt.direction = aim.rotated((i - (bolt_count - 1) * 0.5) * MULTISHOT_SPREAD)
+		bolt.damage = mage_damage
+		bolt.pierce = bolt_pierce
+		bolt.chain = bolt_chain
+		bolt.enemy_group = enemy_group
+		get_parent().add_child(bolt)
+		bolt.global_position = global_position
 
 
 func _nearest_enemy(max_distance: float) -> Node2D:
