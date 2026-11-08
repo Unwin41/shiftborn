@@ -52,6 +52,7 @@ const DEATH_FLASH := Color(8.0, 8.0, 8.0)
 ## Invulnerable: the sprite blinks between these every BLINK_TIME seconds.
 const INVULNERABLE_TINT := Color(1.8, 1.8, 2.2)
 const INVULNERABLE_BLINK_TIME := 0.06
+const INTRO_TIME := 0.45
 ## Momentum: damage bonus lasts this long after each shift.
 const MOMENTUM_TIME := 2.0
 ## Blood Pact: damage factor while at full health.
@@ -209,6 +210,13 @@ func add_evolution(id: StringName) -> void:
 		var orbit := ArcaneOrbit.new()
 		orbit.player = self
 		add_child(orbit)
+
+
+## The run's opening: the sprite pops in from nothing.
+func play_intro() -> void:
+	_sprite.scale = Vector2.ZERO
+	create_tween().tween_property(_sprite, ^"scale", Vector2.ONE, INTRO_TIME) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func make_invulnerable(seconds: float) -> void:

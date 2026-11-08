@@ -37,6 +37,10 @@ const SHADOW_LIFT := 3.0
 @export var body_radius: float = 6.0
 ## XP granted to the player on death.
 @export var xp_value: int = 1
+## Color of the burst when this enemy dies.
+@export var particle_color: Color = Color(0.9, 0.3, 0.35)
+## Particles in that burst; bigger enemies make bigger bursts.
+@export var particle_count: int = 6
 ## Form whose attacks deal only [constant RESISTED_DAMAGE] of their damage.
 @export_enum("None:-1", "Warrior:0", "Mage:1") var resisted_form: int = NO_FORM
 

@@ -31,6 +31,17 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 const RESULTS_DELAY := 1.2
 ## "PERFECT" appears this far from the player, above the head.
 const PERFECT_POPUP_OFFSET := Vector2(0, -14)
+const SHIFT_RING_PARTICLES := 12
+const SHIFT_RING_SPEED := 90.0
+const DEATH_BURST_SPEED := 70.0
+const PERFECT_PARTICLES := 24
+const PERFECT_PARTICLE_SPEED := 150.0
+const LEVEL_UP_PARTICLES := 18
+const LEVEL_UP_PARTICLE_SPEED := 60.0
+const LEVEL_UP_COLOR := Color(1.0, 0.82, 0.35)
+## Perfect shift flashes the screen white at this alpha, fading out.
+const PERFECT_FLASH_ALPHA := 0.3
+const PERFECT_FLASH_TIME := 0.25
 
 @onready var player: Player = $Player
 @onready var spawner: HordeSpawner = $HordeSpawner
@@ -48,6 +59,8 @@ var level_up_menu: LevelUpMenu
 var pause_menu: PauseMenu
 var results_screen: ResultsScreen
 var tutorial: Tutorial
+var particles: ParticleBursts
+var _flash: ColorRect
 var _run_over: bool = false
 var _rng := RandomNumberGenerator.new()
 ## Level-ups earned but not picked yet; several can arrive in one frame.
@@ -75,6 +88,7 @@ func _ready() -> void:
 	spawner.enemy_spawned.connect(_on_enemy_spawned)
 	spawner.enemy_spawned.connect(_scale_enemy_health)
 	GameSettings.current()
+	_add_effects()
 	_rng.randomize()
 	level_up_menu = LevelUpMenu.new()
 	add_child(level_up_menu)
@@ -92,6 +106,25 @@ func _ready() -> void:
 		spawn_boss.call_deferred()
 	elif not GameSettings.current().tutorial_done:
 		_start_tutorial()
+
+
+## Particles above the enemies, a white flash on the HUD, the player's
+## pop-in and the shift rings.
+func _add_effects() -> void:
+	particles = ParticleBursts.new()
+	# Bursts finish while the level-up or pause menu is open.
+	particles.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(particles)
+	_flash = ColorRect.new()
+	_flash.color = Color.WHITE
+	_flash.modulate.a = 0.0
+	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	$HUD.add_child(_flash)
+	player.form_changed.connect(func(new_form: Player.Form) -> void:
+		particles.ring(player.global_position, Player.ui_color(new_form), SHIFT_RING_PARTICLES, SHIFT_RING_SPEED))
+	player.play_intro()
+	particles.ring(player.global_position, Color.WHITE, SHIFT_RING_PARTICLES * 2, SHIFT_RING_SPEED)
 
 
 ## The guided first run: waves and the run clock wait until it ends.
@@ -181,13 +214,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func restart() -> void:
-	get_tree().paused = false
-	get_tree().reload_current_scene()
+	ScreenFade.go_to(get_tree())
 
 
 func go_to_title() -> void:
-	get_tree().paused = false
-	get_tree().change_scene_to_file(TITLE_SCENE)
+	ScreenFade.go_to(get_tree(), TITLE_SCENE)
 
 
 func _on_enemy_spawned(enemy: Node2D) -> void:
@@ -223,6 +254,7 @@ func _apply_quality() -> void:
 
 
 func _on_enemy_died(enemy: Enemy) -> void:
+	particles.burst(enemy.global_position, enemy.particle_color, enemy.particle_count, DEATH_BURST_SPEED)
 	if _run_over:
 		return
 	kills += 1
@@ -246,6 +278,7 @@ func _open_level_up() -> void:
 		get_tree().paused = true
 		level_up_menu.open(offers, levels)
 		AudioManager.play(&"level_up")
+		particles.ring(player.global_position, LEVEL_UP_COLOR, LEVEL_UP_PARTICLES, LEVEL_UP_PARTICLE_SPEED)
 		return
 	_level_up_active = false
 	get_tree().paused = false
@@ -259,6 +292,10 @@ func _on_upgrade_chosen(upgrade: Upgrade) -> void:
 
 func _on_perfect_shift() -> void:
 	_hitstop.slow_motion(PerfectShift.SLOW_TIME, PerfectShift.SLOW_SCALE)
+	particles.burst(player.global_position, PerfectShift.POPUP_COLOR, PERFECT_PARTICLES, PERFECT_PARTICLE_SPEED)
+	_flash.modulate.a = PERFECT_FLASH_ALPHA
+	# Real time: the flash should not crawl during the slow motion.
+	create_tween().set_ignore_time_scale().tween_property(_flash, ^"modulate:a", 0.0, PERFECT_FLASH_TIME)
 	damage_numbers.spawn_text(player.global_position + PERFECT_POPUP_OFFSET, PerfectShift.POPUP_TEXT, PerfectShift.POPUP_COLOR)
 
 

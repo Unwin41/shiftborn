@@ -6,6 +6,8 @@
 [node name="EnemySpirit" instance=ExtResource("1_base")]
 move_speed = 80.0
 max_health = 1.0
+particle_color = Color(0.6, 0.78, 1, 1)
+particle_count = 6
 contact_dps = 1.5
 body_radius = 5.0
 resisted_form = 0

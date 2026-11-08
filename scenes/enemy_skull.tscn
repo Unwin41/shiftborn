@@ -6,6 +6,8 @@
 [node name="EnemySkull" instance=ExtResource("1_base")]
 move_speed = 38.0
 max_health = 4.0
+particle_color = Color(0.95, 0.9, 0.8, 1)
+particle_count = 6
 contact_dps = 3.0
 resisted_form = 1
 

@@ -41,7 +41,7 @@ func _process(delta: float) -> void:
 
 func start_run() -> void:
 	AudioManager.play(&"card_pick")
-	get_tree().change_scene_to_file(RUN_SCENE)
+	ScreenFade.go_to(get_tree(), RUN_SCENE)
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -9,6 +9,8 @@ radius = 16.0
 [node name="EnemyCyclops" instance=ExtResource("1_base")]
 move_speed = 32.0
 max_health = 70.0
+particle_color = Color(1, 0.45, 0.3, 1)
+particle_count = 40
 contact_dps = 4.0
 body_radius = 15.0
 xp_value = 15

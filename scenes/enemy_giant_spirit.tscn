@@ -9,6 +9,8 @@ radius = 16.0
 [node name="EnemyGiantSpirit" instance=ExtResource("1_base")]
 move_speed = 30.0
 max_health = 140.0
+particle_color = Color(0.6, 0.78, 1, 1)
+particle_count = 40
 contact_dps = 5.0
 body_radius = 15.0
 xp_value = 25
