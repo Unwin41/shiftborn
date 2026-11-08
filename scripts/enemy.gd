@@ -5,7 +5,8 @@ extends Area2D
 ## Needs an AnimatedSprite2D child named "Sprite" with a "run" animation.
 
 signal died(enemy: Enemy)
-signal damaged(enemy: Enemy, amount: float)
+## [param resisted] is true when the hit came from the form it resists.
+signal damaged(enemy: Enemy, amount: float, resisted: bool)
 
 const PLAYER_RADIUS := 7.0
 const HIT_FLASH_TIME := 0.08
@@ -17,6 +18,11 @@ const KNOCKBACK_DECAY := 10.0
 ## Death pop: flash, squash and fade before the node is freed.
 const DEATH_TIME := 0.2
 const DEATH_SCALE := Vector2(1.5, 0.3)
+## "No form": a neutral damage source, or an enemy that resists nothing.
+const NO_FORM := -1
+## Share of damage taken from the resisted form.
+const RESISTED_DAMAGE := 0.25
+const WEAKNESS_MARK_OFFSET := Vector2(0.0, -12.0)
 
 @export var move_speed: float = 45.0
 @export var max_health: float = 3.0
@@ -24,18 +30,35 @@ const DEATH_SCALE := Vector2(1.5, 0.3)
 @export var body_radius: float = 6.0
 ## XP granted to the player on death.
 @export var xp_value: int = 1
+## Form whose attacks deal only [constant RESISTED_DAMAGE] of their damage.
+@export_enum("None:-1", "Warrior:0", "Mage:1") var resisted_form: int = NO_FORM
 
 var target: Node2D
 var health: float
 
 var _hit_flash: float = 0.0
+var _weakness_mark: WeaknessMark
 var _knockback_velocity: Vector2 = Vector2.ZERO
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 
 
+static func damage_after_resist(amount: float, resisted: int, source_form: int) -> float:
+	if resisted != NO_FORM and source_form == resisted:
+		return amount * RESISTED_DAMAGE
+	return amount
+
+
+func resists(source_form: int) -> bool:
+	return resisted_form != NO_FORM and source_form == resisted_form
+
+
 func _ready() -> void:
 	health = max_health
+	if resisted_form != NO_FORM:
+		var weak_to := Player.Form.MAGE if resisted_form == Player.Form.KNIGHT else Player.Form.KNIGHT
+		_weakness_mark = WeaknessMark.create(weak_to, WEAKNESS_MARK_OFFSET)
+		add_child(_weakness_mark)
 	_sprite.play(&"run")
 	# Desync animations so a crowd does not bob in lockstep.
 	_sprite.frame = randi() % maxi(_sprite.sprite_frames.get_frame_count(&"run"), 1)
@@ -56,12 +79,16 @@ func _physics_process(delta: float) -> void:
 		target.take_damage(contact_dps * delta)
 
 
-func take_damage(amount: float) -> void:
+## [param source_form] is the attacking form, or [constant NO_FORM] for
+## damage that ignores resistance (Shift Burst).
+func take_damage(amount: float, source_form: int = NO_FORM) -> void:
 	if health <= 0.0:
 		return
-	var dealt := minf(amount, health)
-	health -= amount
-	damaged.emit(self, dealt)
+	var resisted := resists(source_form)
+	var final_amount := damage_after_resist(amount, resisted_form, source_form)
+	var dealt := minf(final_amount, health)
+	health -= final_amount
+	damaged.emit(self, dealt, resisted)
 	_hit_flash = HIT_FLASH_TIME
 	_sprite.modulate = HIT_FLASH_MODULATE
 	if health <= 0.0:
@@ -78,6 +105,8 @@ func _die() -> void:
 			remove_from_group(group)
 	set_deferred(&"monitorable", false)
 	set_physics_process(false)
+	if _weakness_mark != null:
+		_weakness_mark.hide()
 	var tween := create_tween().set_parallel()
 	tween.tween_property(_sprite, ^"scale", DEATH_SCALE, DEATH_TIME).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_sprite, ^"modulate", Color(HIT_FLASH_MODULATE, 0.0), DEATH_TIME)

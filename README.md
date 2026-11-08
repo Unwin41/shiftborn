@@ -27,6 +27,10 @@ Desktop builds run with extra effects: HDR glow and a light on every bolt. The b
 
 Attacks are automatic. Survive 10 minutes.
 
+Why shift:
+- **Resistances.** Skeletons shrug off magic and imps shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.
+- **Energy.** The active form tires and its damage drops to half; the resting form recovers twice as fast. The bars at the bottom show both.
+
 ## Horde Kit addon
 
 The spawner and upgrade systems live in [`addons/horde_kit`](addons/horde_kit) and have no dependency on the game. They will be split into their own repository after the jam.

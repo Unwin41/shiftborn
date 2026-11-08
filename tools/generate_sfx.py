@@ -155,6 +155,11 @@ SOUNDS = (
         Voice("noise", 3000, sustain=0.005, decay=0.06, lowpass=0.7, volume=0.8),
         Voice("sine", 900, slide=-3.0, sustain=0.01, decay=0.05, volume=0.5),
     ), variants=2, pitch_spread=0.15, seed=22),
+    # A hit on the form an enemy resists: a dull, low clank.
+    Sound("hit_resisted", (
+        Voice("square", 140, slide=-1.0, duty=0.15, sustain=0.01, decay=0.06, lowpass=0.25),
+        Voice("noise", 250, sustain=0.005, decay=0.04, lowpass=0.2, volume=0.6),
+    ), variants=2, pitch_spread=0.1, seed=13),
     # Enemies.
     Sound("enemy_death", (
         Voice("noise", 600, slide=-2.0, sustain=0.02, decay=0.18, punch=0.5, lowpass=0.45),

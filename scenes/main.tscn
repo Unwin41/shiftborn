@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/enemy_skeleton.tscn" id="8_skeleton"]
 [ext_resource type="Script" path="res://scripts/damage_numbers.gd" id="9_numbers"]
 [ext_resource type="Script" path="res://scripts/xp_bar.gd" id="10_xp_bar"]
+[ext_resource type="Script" path="res://scripts/energy_bars.gd" id="11_energy"]
 
 [sub_resource type="Resource" id="Resource_opening"]
 script = ExtResource("5_wave")
@@ -94,6 +95,19 @@ offset_top = 16.0
 offset_right = 632.0
 offset_bottom = 36.0
 theme_override_font_sizes/font_size = 12
+
+[node name="EnergyBars" type="Control" parent="HUD"]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -32.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("11_energy")
 
 [node name="CenterLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true

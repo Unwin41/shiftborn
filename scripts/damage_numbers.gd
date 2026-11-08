@@ -13,6 +13,8 @@ const TEXT_WIDTH := 40.0
 const MAX_ACTIVE_HIGH := 80
 const MAX_ACTIVE_LOW := 30
 const COLOR := Color(1.0, 0.95, 0.8)
+## Hits on a resisted form: grey, so the player sees the attack is weak.
+const RESISTED_COLOR := Color(0.6, 0.6, 0.66)
 const OUTLINE_COLOR := Color(0.05, 0.03, 0.08, 0.9)
 ## Numbers start a bit above the enemy's feet.
 const START_OFFSET := Vector2(0.0, -10.0)
@@ -26,6 +28,7 @@ var max_active: int = MAX_ACTIVE_HIGH
 var _positions: PackedVector2Array = []
 var _texts: PackedStringArray = []
 var _ages: PackedFloat32Array = []
+var _colors: PackedColorArray = []
 var _lines: Dictionary[String, TextLine] = {}
 
 
@@ -41,7 +44,7 @@ func _init() -> void:
 	material = UNSHADED
 
 
-func spawn(at: Vector2, amount: float) -> void:
+func spawn(at: Vector2, amount: float, resisted: bool = false) -> void:
 	if amount <= 0.0:
 		return
 	if _positions.size() >= max_active:
@@ -49,6 +52,11 @@ func spawn(at: Vector2, amount: float) -> void:
 	_positions.append(at + START_OFFSET)
 	_texts.append(format_amount(amount))
 	_ages.append(0.0)
+	_colors.append(RESISTED_COLOR if resisted else COLOR)
+
+
+func color_of_newest() -> Color:
+	return _colors[_colors.size() - 1] if not _colors.is_empty() else COLOR
 
 
 func count() -> int:
@@ -82,7 +90,7 @@ func _draw() -> void:
 		var line := _line_for(_texts[i])
 		var at := _positions[i] + Vector2(-TEXT_WIDTH * 0.5, -RISE * t - line.get_line_ascent())
 		line.draw_outline(canvas, at, OUTLINE_SIZE, Color(OUTLINE_COLOR, OUTLINE_COLOR.a * alpha))
-		line.draw(canvas, at, Color(COLOR, alpha))
+		line.draw(canvas, at, Color(_colors[i], alpha))
 
 
 func _line_for(text: String) -> TextLine:
@@ -103,3 +111,4 @@ func _remove_oldest() -> void:
 	_positions.remove_at(0)
 	_texts.remove_at(0)
 	_ages.remove_at(0)
+	_colors.remove_at(0)

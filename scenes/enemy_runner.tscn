@@ -8,6 +8,7 @@ move_speed = 80.0
 max_health = 1.5
 contact_dps = 1.5
 body_radius = 5.0
+resisted_form = 0
 
 [node name="Sprite" parent="." index="0"]
 sprite_frames = ExtResource("2_imp")

@@ -30,6 +30,9 @@ const SHIFT_BURST_RADIUS := 64.0
 const SHIFT_BURST_COOLDOWN := 2.0
 const KNIGHT_LIGHT_COLOR := Color(1.0, 0.88, 0.72)
 const MAGE_LIGHT_COLOR := Color(0.72, 0.66, 1.0)
+## HUD colors of the forms: energy bars, weakness marks.
+const KNIGHT_UI_COLOR := Color(1.0, 0.6, 0.25)
+const MAGE_UI_COLOR := Color(0.72, 0.5, 1.0)
 ## Torch flicker: energy wobbles by this much around the base energy.
 const LIGHT_FLICKER := 0.05
 const LIGHT_FLICKER_SPEED := 9.0
@@ -39,6 +42,10 @@ const HURT_TRAUMA := 0.45
 const DEATH_TRAUMA := 0.8
 const SHIFT_TRAUMA := 0.15
 const SHIFT_BURST_TRAUMA := 0.4
+## Death: flash white, squash and fade like the enemies, while the light dies.
+const DEATH_TIME := 0.6
+const DEATH_SCALE := Vector2(1.8, 0.2)
+const DEATH_FLASH := Color(8.0, 8.0, 8.0)
 
 @export var move_speed: float = 110.0
 @export var max_health: float = 10.0
@@ -82,6 +89,7 @@ var _burst_timer: float = 0.0
 var _hurt_feedback_timer: float = 0.0
 var _light_base_energy: float = 0.0
 var _light_time: float = 0.0
+var _energy := FormEnergy.new()
 ## Blades that already hit each enemy this spin (instance id -> bitmask).
 var _sword_hits: Dictionary[int, int] = {}
 
@@ -108,6 +116,7 @@ func _physics_process(delta: float) -> void:
 	_burst_timer = maxf(_burst_timer - delta, 0.0)
 	_hurt_feedback_timer = maxf(_hurt_feedback_timer - delta, 0.0)
 	_update_light(delta)
+	_energy.tick(form, delta)
 	_update_hurt_flash(delta)
 	if regen_per_second > 0.0:
 		heal(regen_per_second * delta)
@@ -147,12 +156,26 @@ func take_damage(amount: float) -> void:
 		is_dead = true
 		_shake(DEATH_TRAUMA)
 		AudioManager.play(&"player_death")
+		_play_death()
 		died.emit()
 	elif _hurt_feedback_timer == 0.0:
 		_hurt_feedback_timer = HURT_FEEDBACK_COOLDOWN
 		_shake(HURT_TRAUMA)
 		AudioManager.play(&"player_hurt")
 		hurt_feedback.emit()
+
+
+## The body vanishes but the node stays: the camera and the run screen
+## still need it.
+func _play_death() -> void:
+	_sword.cancel()
+	_sword.hide()
+	_sprite.modulate = DEATH_FLASH
+	var tween := create_tween().set_parallel()
+	tween.tween_property(_sprite, ^"scale", DEATH_SCALE, DEATH_TIME).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_sprite, ^"modulate", Color(DEATH_FLASH, 0.0), DEATH_TIME)
+	tween.tween_property(_light, ^"energy", 0.0, DEATH_TIME * 2.0)
+	tween.chain().tween_callback(_sprite.hide)
 
 
 func heal(amount: float) -> void:
@@ -170,6 +193,15 @@ func refresh_stats() -> void:
 	_sword.reach = knight_radius
 	_sword.blade_count = blade_count
 	health_changed.emit(health, max_health)
+
+
+static func ui_color(of_form: int) -> Color:
+	return KNIGHT_UI_COLOR if of_form == Form.KNIGHT else MAGE_UI_COLOR
+
+
+## Energy of [param of_form], 0..1. See [FormEnergy].
+func energy_level(of_form: Form) -> float:
+	return _energy.level(of_form)
 
 
 func form_name() -> String:
@@ -258,8 +290,9 @@ func _sword_hit(enemy: Node2D, offset: Vector2) -> void:
 		return
 	if knockback > 0.0 and enemy.has_method("knockback"):
 		enemy.knockback(offset.normalized() * knockback)
-	enemy.take_damage(knight_damage)
-	AudioManager.play(&"axe_hit")
+	enemy.take_damage(knight_damage * _energy.damage_multiplier(Form.KNIGHT), Form.KNIGHT)
+	var resisted: bool = enemy is Enemy and enemy.resists(Form.KNIGHT)
+	AudioManager.play(&"hit_resisted" if resisted else &"axe_hit")
 	heal(lifesteal)
 
 
@@ -286,7 +319,7 @@ func _mage_bolt() -> void:
 	for i in bolt_count:
 		var bolt := BOLT_SCENE.instantiate() as Bolt
 		bolt.direction = aim.rotated((i - (bolt_count - 1) * 0.5) * MULTISHOT_SPREAD)
-		bolt.damage = mage_damage
+		bolt.damage = mage_damage * _energy.damage_multiplier(Form.MAGE)
 		bolt.pierce = bolt_pierce
 		bolt.chain = bolt_chain
 		bolt.enemy_group = enemy_group

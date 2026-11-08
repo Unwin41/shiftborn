@@ -64,8 +64,9 @@ func _on_area_entered(area: Area2D) -> void:
 		return
 	_hit[id] = true
 	var hit_position := area.global_position
-	area.take_damage(damage)
-	AudioManager.play(&"bolt_hit")
+	area.take_damage(damage, Player.Form.MAGE)
+	var resisted: bool = area is Enemy and area.resists(Player.Form.MAGE)
+	AudioManager.play(&"hit_resisted" if resisted else &"bolt_hit")
 	if chain > 0 and _jump_from(hit_position):
 		chain -= 1
 		return

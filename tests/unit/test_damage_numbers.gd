@@ -40,3 +40,12 @@ func test_text_lines_are_cached_per_string() -> void:
 	assert_true(first == numbers._line_for("2"), "same text should reuse its TextLine")
 	assert_false(first == numbers._line_for("3"), "different text needs its own TextLine")
 	numbers.free()
+
+
+func test_resisted_hits_are_grey() -> void:
+	var numbers := DamageNumbers.new()
+	numbers.spawn(Vector2.ZERO, 1.0, true)
+	assert_eq(numbers.color_of_newest(), DamageNumbers.RESISTED_COLOR)
+	numbers.spawn(Vector2.ZERO, 1.0)
+	assert_eq(numbers.color_of_newest(), DamageNumbers.COLOR)
+	numbers.free()

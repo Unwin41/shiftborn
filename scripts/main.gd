@@ -13,6 +13,7 @@ const DEATH_HITSTOP := 0.2
 @onready var status_label: Label = %StatusLabel
 @onready var center_label: Label = %CenterLabel
 @onready var xp_bar: XpBar = %XpBar
+@onready var energy_bars: EnergyBars = %EnergyBars
 @onready var damage_numbers: DamageNumbers = $DamageNumbers
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 
@@ -58,6 +59,7 @@ func _process(_delta: float) -> void:
 		kills,
 	]
 	xp_bar.set_progress(experience.level, experience.progress())
+	energy_bars.show_levels(player.energy_level(Player.Form.KNIGHT), player.energy_level(Player.Form.MAGE), player.form)
 	if not _run_over and spawner.elapsed >= RUN_LENGTH:
 		AudioManager.play(&"run_win")
 		_end_run("YOU SURVIVED")
@@ -75,8 +77,8 @@ func _on_enemy_spawned(enemy: Node2D) -> void:
 		enemy.damaged.connect(_on_enemy_damaged)
 
 
-func _on_enemy_damaged(enemy: Enemy, amount: float) -> void:
-	damage_numbers.spawn(enemy.global_position, amount)
+func _on_enemy_damaged(enemy: Enemy, amount: float, resisted: bool) -> void:
+	damage_numbers.spawn(enemy.global_position, amount, resisted)
 
 
 ## HDR 2D and glow only on HIGH; see [Quality]. The scene ships with glow

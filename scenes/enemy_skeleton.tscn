@@ -7,6 +7,7 @@
 move_speed = 38.0
 max_health = 6.0
 contact_dps = 3.0
+resisted_form = 1
 
 [node name="Sprite" parent="." index="0"]
 sprite_frames = ExtResource("2_skeleton")
