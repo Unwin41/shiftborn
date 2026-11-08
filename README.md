@@ -4,7 +4,14 @@ A survivors-like where you **shift** between two forms mid-fight: a slow armored
 
 **[Play in your browser](https://unwin41.github.io/shiftborn/)** · **[Download for Windows, macOS and Linux](https://github.com/Unwin41/shiftborn/releases)** · itch.io page coming soon
 
-> Work in progress. Art: [Ninja Adventure Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy and AAA (CC0).
+![Shiftborn gameplay: the mage and the warrior trade places in a horde, landing a perfect shift](docs/media/gameplay.gif)
+
+> Art: [Ninja Adventure Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy and AAA (CC0).
+
+| | |
+|---|---|
+| ![Title screen](docs/media/title.png) | ![Evolution cards on level-up](docs/media/evolution_cards.png) |
+| ![The Shifting Demon boss](docs/media/boss.png) | ![Results screen after a win](docs/media/results.png) |
 
 ## Download
 
