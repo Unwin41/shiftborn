@@ -5,22 +5,23 @@ extends Node2D
 ## [constant BOSS_TIME]; then the final boss arrives. Killing it wins the
 ## run, dying loses it.
 
-const BOSS_TIME := 540.0
+const BOSS_TIME := 270.0
 const BOSS_SCENE := preload("res://scenes/boss.tscn")
 ## The boss appears this far from the player, inside the screen edge.
 const BOSS_SPAWN_DISTANCE := 190.0
 ## Mini-bosses by run time. Spawned here rather than by a SpawnWave, so
 ## the spawner's alive cap can never drop them.
 const MINI_BOSSES: Array[Dictionary] = [
-	{time = 210.0, scene = preload("res://scenes/enemy_cyclops.tscn")},
-	{time = 390.0, scene = preload("res://scenes/enemy_giant_spirit.tscn")},
+	{time = 105.0, scene = preload("res://scenes/enemy_cyclops.tscn")},
+	{time = 195.0, scene = preload("res://scenes/enemy_giant_spirit.tscn")},
 ]
 ## Mini-bosses appear this far away, just off screen.
 const MINI_BOSS_SPAWN_DISTANCE := 260.0
 ## Start with the boss: `godot --path . -- --boss`. For testing the fight.
 const BOSS_FLAG := "--boss"
 ## Wave enemies spawned at time t get 1 + t / this many times their health.
-const HEALTH_GROWTH_SECONDS := 150.0
+## About 4x by the boss: a short run has fewer upgrades to keep up with.
+const HEALTH_GROWTH_SECONDS := 90.0
 const OFFER_COUNT := 3
 const HURT_HITSTOP := 0.06
 const DEATH_HITSTOP := 0.2

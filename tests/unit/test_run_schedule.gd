@@ -32,3 +32,14 @@ func test_boss_bar_fraction_is_clamped() -> void:
 	assert_almost_eq(BossBar.fraction(50.0, 200.0), 0.25)
 	assert_almost_eq(BossBar.fraction(-5.0, 200.0), 0.0)
 	assert_almost_eq(BossBar.fraction(10.0, 0.0), 0.0)
+
+
+func test_run_fits_five_minutes_with_boss_at_four_thirty() -> void:
+	assert_almost_eq(Run.BOSS_TIME, 270.0)
+	assert_almost_eq(Run.MINI_BOSSES[0].time, 105.0)
+	assert_almost_eq(Run.MINI_BOSSES[1].time, 195.0)
+
+
+func test_every_wave_starts_in_the_first_minute_and_a_half() -> void:
+	for wave in _waves():
+		assert_true(wave.start_time <= 90.0, "%s starts too late for a short run" % wave.enemy_scene.resource_path)

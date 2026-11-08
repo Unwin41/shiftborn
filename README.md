@@ -25,7 +25,7 @@ Desktop builds run with extra effects: HDR glow and a light on every bolt. The b
 | Restart | R / Enter | Start |
 | Mute | M | |
 
-Attacks are automatic. Mini-bosses arrive at 3:30 (a cyclops demon) and 6:30 (a giant spirit); at 9:00 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.
+Attacks are automatic. Mini-bosses arrive at 1:45 (a cyclops demon) and 3:15 (a giant spirit); at 4:30 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.
 
 Why shift:
 - **Resistances.** Skulls shrug off magic and spirits shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.

@@ -53,3 +53,10 @@ func test_leveled_up_signal_fires_once_per_level() -> void:
 	experience.leveled_up.connect(func(new_level: int) -> void: levels.append(new_level))
 	experience.add(Experience.xp_for_level(1) + Experience.xp_for_level(2))
 	assert_eq(levels, [2, 3] as Array[int])
+
+
+func test_early_levels_are_not_a_card_every_few_kills() -> void:
+	var total := 0
+	for level in range(1, 5):
+		total += Experience.xp_for_level(level)
+	assert_true(total >= 40, "reaching level 5 takes only %d XP" % total)

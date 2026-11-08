@@ -25,22 +25,22 @@ glow_hdr_threshold = 1.2
 [sub_resource type="Resource" id="Resource_spiders"]
 script = ExtResource("5_wave")
 enemy_scene = ExtResource("6_enemy")
-end_time = 540.0
+end_time = 270.0
 batch_size = 3
 
 [sub_resource type="Resource" id="Resource_spirits"]
 script = ExtResource("5_wave")
 enemy_scene = ExtResource("7_spirit")
-start_time = 45.0
-end_time = 540.0
+start_time = 20.0
+end_time = 270.0
 interval = 1.5
 batch_size = 3
 
 [sub_resource type="Resource" id="Resource_skulls"]
 script = ExtResource("5_wave")
 enemy_scene = ExtResource("8_skull")
-start_time = 120.0
-end_time = 540.0
+start_time = 60.0
+end_time = 270.0
 interval = 0.6
 batch_size = 4
 
