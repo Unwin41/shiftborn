@@ -12,6 +12,9 @@ const MUSIC_BUS := &"Music"
 const SFX_BUS := &"SFX"
 
 static var _current: GameSettings
+## Where [method current] loads and [method save] writes. Tests point it
+## elsewhere so they never touch the player's settings.
+static var path: String = PATH
 
 var music_volume: float = DEFAULT_VOLUME
 var sfx_volume: float = DEFAULT_VOLUME
@@ -24,7 +27,7 @@ var tutorial_done: bool = false
 static func current() -> GameSettings:
 	if _current == null:
 		_current = GameSettings.new()
-		_current.load_from(PATH)
+		_current.load_from(path)
 		_current.apply_volumes()
 		# Browsers only allow fullscreen from a click, so web starts windowed.
 		if not OS.has_feature("web"):
@@ -69,9 +72,9 @@ func apply_fullscreen() -> void:
 
 
 func save() -> void:
-	var error := save_to(PATH)
+	var error := save_to(path)
 	if error != OK:
-		push_warning("GameSettings: cannot save %s (error %d)" % [PATH, error])
+		push_warning("GameSettings: cannot save %s (error %d)" % [path, error])
 
 
 func save_to(path: String) -> Error:

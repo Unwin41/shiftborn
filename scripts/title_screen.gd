@@ -20,6 +20,10 @@ const CONTROLS_HINT := "WASD / Stick move   Space / A shift   Esc / Start pause 
 var _camera: Camera2D
 var _buttons: VBoxContainer
 var _settings: SettingsPanel
+var _achievements: AchievementsPanel
+## Hidden while the achievements page is open, which needs the room.
+var _heroes: Control
+var _hint: Label
 var _play_button: Button
 
 
@@ -45,9 +49,14 @@ func start_run() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _settings != null and _settings.visible and event.is_action_pressed(&"ui_cancel"):
+	if not event.is_action_pressed(&"ui_cancel"):
+		return
+	if _settings != null and _settings.visible:
 		get_viewport().set_input_as_handled()
 		_settings.go_back()
+	elif _achievements != null and _achievements.visible:
+		get_viewport().set_input_as_handled()
+		_show_buttons()
 
 
 func _show_settings() -> void:
@@ -56,8 +65,19 @@ func _show_settings() -> void:
 	_settings.focus_first()
 
 
+func _show_achievements() -> void:
+	_buttons.visible = false
+	_heroes.visible = false
+	_hint.visible = false
+	_achievements.visible = true
+	_achievements.focus_first()
+
+
 func _show_buttons() -> void:
 	_settings.visible = false
+	_achievements.visible = false
+	_heroes.visible = true
+	_hint.visible = true
 	_buttons.visible = true
 	UiKit.grab_focus_quietly(_play_button)
 
@@ -90,10 +110,15 @@ func _build_ui() -> void:
 	center.add_child(column)
 	column.add_child(UiKit.label("Shiftborn", UiKit.TITLE_FONT_SIZE, UiKit.ACCENT_COLOR))
 	column.add_child(UiKit.label(SUBTITLE, UiKit.SMALL_FONT_SIZE, UiKit.TEXT_COLOR))
-	column.add_child(_hero_area())
+	var best := Progress.current().best_score
+	if best > 0:
+		column.add_child(UiKit.label("Best score %d" % best, UiKit.SMALL_FONT_SIZE, UiKit.ACCENT_COLOR))
+	_heroes = _hero_area()
+	column.add_child(_heroes)
 	_buttons = UiKit.column()
 	_play_button = _add_button("Play", start_run)
 	_add_button("Settings", _show_settings)
+	_add_button("Achievements", _show_achievements)
 	if not OS.has_feature("web"):
 		_add_button("Quit", _quit)
 	column.add_child(_buttons)
@@ -101,7 +126,12 @@ func _build_ui() -> void:
 	_settings.visible = false
 	_settings.back_pressed.connect(_show_buttons)
 	column.add_child(_settings)
-	layer.add_child(_corner_label(CONTROLS_HINT, Control.PRESET_CENTER_BOTTOM))
+	_achievements = AchievementsPanel.new()
+	_achievements.visible = false
+	_achievements.back_pressed.connect(_show_buttons)
+	column.add_child(_achievements)
+	_hint = _corner_label(CONTROLS_HINT, Control.PRESET_CENTER_BOTTOM)
+	layer.add_child(_hint)
 	var version := "v%s" % ProjectSettings.get_setting("application/config/version", "")
 	layer.add_child(_corner_label(version, Control.PRESET_BOTTOM_RIGHT))
 

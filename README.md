@@ -33,6 +33,8 @@ Desktop builds run with extra effects: HDR glow and a light on every bolt. The b
 | Retry after a run | R | Retry button |
 | Mute | M | |
 
+Every run ends with a score (kills, time, perfect shifts and a big bonus for beating the boss); the title screen shows your best. Ten achievements, from First Blood to Untouchable, are listed under **Achievements** on the title screen.
+
 The first run starts with a short guided tutorial (move, shift, resistance, perfect shift). Skip it from the pause menu, or turn it back on in Settings.
 
 Attacks are automatic. Mini-bosses arrive at 1:45 (a cyclops demon) and 3:15 (a giant spirit); at 4:30 the waves stop and **The Shifting Demon** appears. It swaps the form it resists every 8 seconds, dashes and fires bolt rings. Kill it to win.

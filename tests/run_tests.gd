@@ -10,6 +10,9 @@ var _failed := 0
 
 
 func _initialize() -> void:
+	# Never touch the player's own save files.
+	GameSettings.path = "user://test_run_settings.cfg"
+	Progress.path = "user://test_run_progress.cfg"
 	var files := DirAccess.get_files_at(TEST_DIR)
 	if files.is_empty():
 		push_error("No test files found in %s" % TEST_DIR)
@@ -19,6 +22,8 @@ func _initialize() -> void:
 		if file.begins_with("test_") and file.ends_with(".gd"):
 			_run_suite(TEST_DIR.path_join(file))
 	print("\n%d passed, %d failed" % [_passed, _failed])
+	for file in [GameSettings.path, Progress.path]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
 	quit(1 if _failed > 0 else 0)
 
 

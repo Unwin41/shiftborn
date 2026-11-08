@@ -17,6 +17,9 @@ const INPUT_GRACE := 0.4
 
 var _title: Label
 var _stats: Label
+var _score: Label
+var _score_lines: Label
+var _new_best: Label
 var _upgrades_header: Label
 var _upgrade_grid: GridContainer
 var _retry_button: Button
@@ -50,6 +53,21 @@ func open(won: bool, seconds: float, kills: int, level: int, upgrades: Array[Upg
 		return
 	_set_buttons_disabled(true)
 	get_tree().create_timer(INPUT_GRACE, true).timeout.connect(_accept_input)
+
+
+## The run's score, one line per part, and NEW BEST when it is a record.
+func show_score(score: int, lines: PackedStringArray, new_best: bool) -> void:
+	_score.text = "SCORE %d" % score
+	_score_lines.text = "\n".join(lines)
+	_new_best.visible = new_best
+
+
+func score_text() -> String:
+	return _score.text
+
+
+func is_new_best_shown() -> bool:
+	return _new_best.visible
 
 
 func title() -> String:
@@ -100,6 +118,13 @@ func _build() -> void:
 	column.add_child(_title)
 	_stats = UiKit.label("")
 	column.add_child(_stats)
+	_score = UiKit.label("", UiKit.HEADER_FONT_SIZE, UiKit.ACCENT_COLOR)
+	column.add_child(_score)
+	_new_best = UiKit.label("New best!", UiKit.SMALL_FONT_SIZE, WIN_COLOR)
+	_new_best.visible = false
+	column.add_child(_new_best)
+	_score_lines = UiKit.label("", UiKit.SMALL_FONT_SIZE, UiKit.MUTED_COLOR)
+	column.add_child(_score_lines)
 	_upgrades_header = UiKit.label("Upgrades", UiKit.SMALL_FONT_SIZE, UiKit.MUTED_COLOR)
 	column.add_child(_upgrades_header)
 	var grid_center := CenterContainer.new()

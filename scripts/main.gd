@@ -62,6 +62,8 @@ var pause_menu: PauseMenu
 var results_screen: ResultsScreen
 var tutorial: Tutorial
 var particles: ParticleBursts
+var stats := RunStats.new()
+var achievement_toast: AchievementToast
 var _flash: ColorRect
 var _run_over: bool = false
 var _rng := RandomNumberGenerator.new()
@@ -91,6 +93,11 @@ func _ready() -> void:
 	spawner.enemy_spawned.connect(_scale_enemy_health)
 	GameSettings.current()
 	_add_effects()
+	achievement_toast = AchievementToast.new()
+	add_child(achievement_toast)
+	player.form_changed.connect(func(_form: Player.Form) -> void:
+		stats.shifts += 1
+		_check_achievements())
 	_rng.randomize()
 	level_up_menu = LevelUpMenu.new()
 	add_child(level_up_menu)
@@ -195,7 +202,10 @@ func spawn_boss() -> void:
 
 func _spawn_due_mini_bosses() -> void:
 	while _next_mini_boss < MINI_BOSSES.size() and spawner.elapsed >= MINI_BOSSES[_next_mini_boss].time:
-		spawn_enemy(MINI_BOSSES[_next_mini_boss].scene, MINI_BOSS_SPAWN_DISTANCE)
+		var mini := spawn_enemy(MINI_BOSSES[_next_mini_boss].scene, MINI_BOSS_SPAWN_DISTANCE)
+		mini.died.connect(func(_enemy: Enemy) -> void:
+			stats.mini_bosses_killed += 1
+			_check_achievements())
 		AudioManager.play(&"boss_roar")
 		_next_mini_boss += 1
 
@@ -284,6 +294,8 @@ func _on_enemy_died(enemy: Enemy) -> void:
 	if _run_over:
 		return
 	kills += 1
+	stats.kills = kills
+	_check_achievements()
 	_pending_level_ups += experience.add(enemy.xp_value)
 	if _pending_level_ups > 0 and not _level_up_active:
 		_open_level_up()
@@ -312,11 +324,16 @@ func _open_level_up() -> void:
 
 func _on_upgrade_chosen(upgrade: Upgrade) -> void:
 	AudioManager.play(&"card_pick")
+	if not upgrade.requires_maxed.is_empty():
+		stats.evolutions += 1
+		_check_achievements()
 	if upgrade_pool.apply(upgrade.id) > 0:
 		UpgradeEffects.apply(player, upgrade.id)
 
 
 func _on_perfect_shift() -> void:
+	stats.perfects += 1
+	_check_achievements()
 	_hitstop.slow_motion(PerfectShift.SLOW_TIME, PerfectShift.SLOW_SCALE)
 	particles.burst(player.global_position, PerfectShift.POPUP_COLOR, PERFECT_PARTICLES, PERFECT_PARTICLE_SPEED)
 	_flash.modulate.a = PERFECT_FLASH_ALPHA
@@ -330,7 +347,22 @@ func _on_player_died() -> void:
 	_end_run(false)
 
 
+## Unlocks and announces every achievement the run has earned so far.
+func _check_achievements() -> void:
+	stats.seconds = spawner.elapsed
+	var progress := Progress.current()
+	var fresh := Achievements.newly_unlocked(stats, progress.unlocked)
+	for id in fresh:
+		progress.unlock(id)
+		achievement_toast.show_unlocked(id)
+	if not fresh.is_empty():
+		progress.save()
+
+
 func _end_run(won: bool) -> void:
+	stats.won = won
+	stats.health_share = player.health / maxf(player.max_health, 1.0)
+	_check_achievements()
 	AudioManager.stop_music(1.5)
 	_run_over = true
 	get_tree().call_group(EnemyBolt.GROUP, &"queue_free")
@@ -352,3 +384,8 @@ func _show_results(won: bool, seconds: float) -> void:
 	for upgrade in owned:
 		levels.append(upgrade_pool.level_of(upgrade.id))
 	results_screen.open(won, seconds, kills, experience.level, owned, levels)
+	var progress := Progress.current()
+	var score := stats.score()
+	var new_best := progress.submit_score(score)
+	progress.save()
+	results_screen.show_score(score, stats.breakdown(), new_best)

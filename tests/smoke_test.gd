@@ -16,6 +16,9 @@ var _errors: PackedStringArray = []
 
 
 func _initialize() -> void:
+	# Never touch the player's own save files.
+	GameSettings.path = "user://smoke_settings.cfg"
+	Progress.path = "user://smoke_progress.cfg"
 	_run.call_deferred()
 
 
@@ -51,6 +54,8 @@ func _run() -> void:
 	await _check_boss(main, player)
 	for error in _errors:
 		printerr("SMOKE FAIL: ", error)
+	for file in [GameSettings.path, Progress.path]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
 	await AudioManager.shutdown()
 	quit(1 if not _errors.is_empty() else 0)
 
@@ -93,6 +98,8 @@ func _check_boss(main: Run, player: Player) -> void:
 	_check(main.results_screen.visible, "results screen not shown after the run")
 	_check(main.results_screen.title() == "YOU WIN", "results title is %s" % main.results_screen.title())
 	_check(main.results_screen.upgrade_slot_count() > 0, "results list no upgrades")
+	_check(main.results_screen.score_text().begins_with("SCORE"), "no score on the results screen")
+	_check(Progress.current().is_unlocked(&"demon_slayer"), "winning did not unlock Demon Slayer")
 
 
 ## An enemy right on the player makes the next shift perfect.
