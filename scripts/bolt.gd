@@ -6,6 +6,11 @@ extends Area2D
 
 const COLOR := Color("e2c4ff")
 const CHAIN_COLOR := Color("fff3a0")
+const GLOW_BOOST := 3.5
+const UNSHADED := preload("res://assets/fx/unshaded.tres")
+const LIGHT_TEXTURE := preload("res://assets/fx/light_radial.tres")
+const LIGHT_ENERGY := 0.6
+const LIGHT_SCALE := 0.7
 const RADIUS := 3.0
 ## How far a chain hit looks for the next enemy.
 const CHAIN_RANGE := 90.0
@@ -26,10 +31,19 @@ var _spent: bool = false
 var _chained: bool = false
 ## Instance ids of enemies this bolt already hit.
 var _hit: Dictionary[int, bool] = {}
+var _light: PointLight2D
 
 
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
+	material = UNSHADED
+	if Quality.is_high():
+		_light = PointLight2D.new()
+		_light.texture = LIGHT_TEXTURE
+		_light.texture_scale = LIGHT_SCALE
+		_light.energy = LIGHT_ENERGY
+		_light.color = COLOR
+		add_child(_light)
 
 
 func _physics_process(delta: float) -> void:
@@ -41,6 +55,9 @@ func _physics_process(delta: float) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if _spent or not area.has_method("take_damage"):
+		return
+	# A corpse keeps its area until the deferred monitorable change lands.
+	if area is Enemy and area.health <= 0.0:
 		return
 	var id := area.get_instance_id()
 	if _hit.has(id):
@@ -78,9 +95,11 @@ func _jump_from(origin: Vector2) -> bool:
 	lifetime = CHAIN_LIFETIME
 	if not _chained:
 		_chained = true
+		if _light != null:
+			_light.color = CHAIN_COLOR
 		queue_redraw()
 	return true
 
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, RADIUS, CHAIN_COLOR if _chained else COLOR)
+	draw_circle(Vector2.ZERO, RADIUS, Quality.glow(CHAIN_COLOR if _chained else COLOR, GLOW_BOOST))

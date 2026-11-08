@@ -5,12 +5,16 @@ extends Node2D
 
 const RUN_LENGTH := 600.0
 const OFFER_COUNT := 3
+const HURT_HITSTOP := 0.06
+const DEATH_HITSTOP := 0.2
 
 @onready var player: Player = $Player
 @onready var spawner: HordeSpawner = $HordeSpawner
 @onready var status_label: Label = %StatusLabel
 @onready var center_label: Label = %CenterLabel
-@onready var xp_bar: ProgressBar = %XpBar
+@onready var xp_bar: XpBar = %XpBar
+@onready var damage_numbers: DamageNumbers = $DamageNumbers
+@onready var world_environment: WorldEnvironment = $WorldEnvironment
 
 var kills: int = 0
 var experience := Experience.new()
@@ -21,6 +25,7 @@ var _rng := RandomNumberGenerator.new()
 ## Level-ups earned but not picked yet; several can arrive in one frame.
 var _pending_level_ups: int = 0
 var _level_up_active: bool = false
+var _hitstop := Hitstop.new()
 
 
 static func format_time(seconds: float) -> String:
@@ -31,6 +36,9 @@ static func format_time(seconds: float) -> String:
 func _ready() -> void:
 	player.enemy_group = spawner.enemy_group
 	player.died.connect(_on_player_died)
+	player.hurt_feedback.connect(_hitstop.trigger.bind(HURT_HITSTOP))
+	add_child(_hitstop)
+	_apply_quality()
 	spawner.enemy_spawned.connect(_on_enemy_spawned)
 	center_label.hide()
 	_rng.randomize()
@@ -41,15 +49,14 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	status_label.text = "%s   %s   Lv %d   HP %d/%d   Kills %d" % [
+	status_label.text = "%s   %s   HP %d/%d   Kills %d" % [
 		format_time(spawner.elapsed),
 		player.form_name(),
-		experience.level,
 		ceili(player.health),
 		int(player.max_health),
 		kills,
 	]
-	xp_bar.value = experience.progress()
+	xp_bar.set_progress(experience.level, experience.progress())
 	if not _run_over and spawner.elapsed >= RUN_LENGTH:
 		_end_run("YOU SURVIVED")
 
@@ -63,6 +70,19 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_enemy_spawned(enemy: Node2D) -> void:
 	if enemy is Enemy:
 		enemy.died.connect(_on_enemy_died)
+		enemy.damaged.connect(_on_enemy_damaged)
+
+
+func _on_enemy_damaged(enemy: Enemy, amount: float) -> void:
+	damage_numbers.spawn(enemy.global_position, amount)
+
+
+## HDR 2D and glow only on HIGH; see [Quality]. The scene ships with glow
+## off so nothing glows on web before this runs.
+func _apply_quality() -> void:
+	var high := Quality.is_high()
+	get_viewport().use_hdr_2d = high
+	world_environment.environment.glow_enabled = high
 
 
 func _on_enemy_died(enemy: Enemy) -> void:
@@ -99,6 +119,7 @@ func _on_upgrade_chosen(upgrade: Upgrade) -> void:
 
 
 func _on_player_died() -> void:
+	_hitstop.trigger(DEATH_HITSTOP)
 	_end_run("YOU DIED")
 
 

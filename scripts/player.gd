@@ -7,6 +7,8 @@ extends Node2D
 signal form_changed(form: Form)
 signal health_changed(current: float, maximum: float)
 signal died
+## A noticeable hit landed on the player (rate limited). Main adds hitstop.
+signal hurt_feedback
 
 enum Form { KNIGHT, MAGE }
 
@@ -26,6 +28,17 @@ const MULTISHOT_SPREAD := 0.2
 const SHIFT_BURST_RADIUS := 64.0
 ## Minimum time between two Shift Bursts, so shift spam is not free damage.
 const SHIFT_BURST_COOLDOWN := 2.0
+const KNIGHT_LIGHT_COLOR := Color(1.0, 0.78, 0.5)
+const MAGE_LIGHT_COLOR := Color(0.72, 0.66, 1.0)
+## Torch flicker: energy wobbles by this much around the base energy.
+const LIGHT_FLICKER := 0.05
+const LIGHT_FLICKER_SPEED := 9.0
+## Contact damage ticks every frame; feedback fires at most this often.
+const HURT_FEEDBACK_COOLDOWN := 1.2
+const HURT_TRAUMA := 0.45
+const DEATH_TRAUMA := 0.8
+const SHIFT_TRAUMA := 0.15
+const SHIFT_BURST_TRAUMA := 0.4
 
 @export var move_speed: float = 110.0
 @export var max_health: float = 10.0
@@ -66,11 +79,16 @@ var _attack_timer: float = 0.0
 var _shift_timer: float = 0.0
 var _hurt_flash: float = 0.0
 var _burst_timer: float = 0.0
+var _hurt_feedback_timer: float = 0.0
+var _light_base_energy: float = 0.0
+var _light_time: float = 0.0
 ## Blades that already hit each enemy this spin (instance id -> bitmask).
 var _sword_hits: Dictionary[int, int] = {}
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 @onready var _sword: SpinningSword = $Sword
+@onready var _light: PointLight2D = $Light
+@onready var _camera: ShakeCamera = $Camera2D
 
 
 func _ready() -> void:
@@ -78,6 +96,7 @@ func _ready() -> void:
 	health_changed.emit(health, max_health)
 	refresh_stats()
 	_sword.swept.connect(_on_sword_swept)
+	_light_base_energy = _light.energy
 	_apply_form_visuals()
 
 
@@ -87,6 +106,8 @@ func _physics_process(delta: float) -> void:
 		return
 	_shift_timer = maxf(_shift_timer - delta, 0.0)
 	_burst_timer = maxf(_burst_timer - delta, 0.0)
+	_hurt_feedback_timer = maxf(_hurt_feedback_timer - delta, 0.0)
+	_update_light(delta)
 	_update_hurt_flash(delta)
 	if regen_per_second > 0.0:
 		heal(regen_per_second * delta)
@@ -107,6 +128,7 @@ func shift() -> void:
 	_attack_timer = SHIFT_ATTACK_DELAY
 	_apply_form_visuals()
 	_shift_burst()
+	_shake(SHIFT_TRAUMA)
 	_sprite.scale = Vector2.ONE * SHIFT_POP_SCALE
 	create_tween().tween_property(_sprite, "scale", Vector2.ONE, SHIFT_POP_TIME) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -122,7 +144,12 @@ func take_damage(amount: float) -> void:
 	health_changed.emit(health, max_health)
 	if health == 0.0:
 		is_dead = true
+		_shake(DEATH_TRAUMA)
 		died.emit()
+	elif _hurt_feedback_timer == 0.0:
+		_hurt_feedback_timer = HURT_FEEDBACK_COOLDOWN
+		_shake(HURT_TRAUMA)
+		hurt_feedback.emit()
 
 
 func heal(amount: float) -> void:
@@ -153,6 +180,17 @@ func _apply_form_visuals() -> void:
 	_sword.visible = form == Form.KNIGHT
 	if form != Form.KNIGHT:
 		_sword.cancel()
+	_light.color = KNIGHT_LIGHT_COLOR if form == Form.KNIGHT else MAGE_LIGHT_COLOR
+
+
+func _update_light(delta: float) -> void:
+	_light_time += delta * LIGHT_FLICKER_SPEED
+	_light.energy = _light_base_energy + LIGHT_FLICKER * (sin(_light_time) + 0.5 * sin(_light_time * 2.7))
+
+
+func _shake(trauma_amount: float) -> void:
+	if _camera != null:
+		_camera.add_trauma(trauma_amount)
 
 
 func _update_animation(direction: Vector2) -> void:
@@ -225,6 +263,7 @@ func _shift_burst() -> void:
 		return
 	_burst_timer = SHIFT_BURST_COOLDOWN
 	add_child(ShiftBurstFx.create(SHIFT_BURST_RADIUS))
+	_shake(SHIFT_BURST_TRAUMA)
 	for node in get_tree().get_nodes_in_group(enemy_group):
 		var enemy := node as Node2D
 		if enemy != null and enemy.has_method("take_damage") \

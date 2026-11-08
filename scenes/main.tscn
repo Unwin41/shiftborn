@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="6_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/enemy_runner.tscn" id="7_runner"]
 [ext_resource type="PackedScene" path="res://scenes/enemy_skeleton.tscn" id="8_skeleton"]
+[ext_resource type="Script" path="res://scripts/damage_numbers.gd" id="9_numbers"]
+[ext_resource type="Script" path="res://scripts/xp_bar.gd" id="10_xp_bar"]
 
 [sub_resource type="Resource" id="Resource_opening"]
 script = ExtResource("5_wave")
@@ -33,14 +35,26 @@ end_time = 600.0
 interval = 0.8
 batch_size = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_bg"]
-bg_color = Color(0.08, 0.08, 0.12, 0.85)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_fill"]
-bg_color = Color(0.35, 0.75, 1, 1)
+[sub_resource type="Environment" id="Environment_glow"]
+background_mode = 3
+glow_levels/1 = 1.0
+glow_levels/2 = 1.0
+glow_levels/3 = 0.6
+glow_levels/5 = 0.0
+glow_intensity = 1.2
+glow_strength = 1.0
+glow_bloom = 0.0
+glow_blend_mode = 0
+glow_hdr_threshold = 1.2
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
+
+[node name="Darkness" type="CanvasModulate" parent="."]
+color = Color(0.58, 0.56, 0.68, 1)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_glow")
 
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("2_grid")
@@ -48,6 +62,9 @@ script = ExtResource("2_grid")
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
+
+[node name="DamageNumbers" type="Node2D" parent="."]
+script = ExtResource("9_numbers")
 
 [node name="HordeSpawner" type="Node2D" parent="."]
 script = ExtResource("4_spawner")
@@ -58,25 +75,24 @@ spawn_radius = 380.0
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="XpBar" type="ProgressBar" parent="HUD"]
+[node name="XpBar" type="Control" parent="HUD"]
 unique_name_in_owner = true
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 4.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 14.0
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_xp_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_xp_fill")
-max_value = 1.0
-step = 0.0
-show_percentage = false
+script = ExtResource("10_xp_bar")
 
 [node name="StatusLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true
 offset_left = 8.0
-offset_top = 8.0
+offset_top = 16.0
 offset_right = 632.0
-offset_bottom = 28.0
+offset_bottom = 36.0
 theme_override_font_sizes/font_size = 12
 
 [node name="CenterLabel" type="Label" parent="HUD"]

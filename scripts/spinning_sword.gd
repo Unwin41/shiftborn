@@ -18,6 +18,8 @@ const TRAIL_ARC := 1.8
 const TRAIL_SEGMENTS := 12
 const TRAIL_FADE_TIME := 0.12
 const TRAIL_COLOR := Color(0.85, 0.95, 1.0, 0.55)
+## The sword sits inside the player's light, so a mild boost is enough to glow.
+const TRAIL_GLOW_BOOST := 1.8
 ## Inner edge of the trail is fainter than the outer edge.
 const TRAIL_INNER_ALPHA := 0.3
 ## Resting pose relative to the owner when facing right.
@@ -146,4 +148,4 @@ func _draw_trail(blade_angle: float) -> void:
 func _append_trail_point(points: PackedVector2Array, colors: PackedColorArray, blade_angle: float, t: float, arc: float, radius: float, strength: float) -> void:
 	var angle := blade_angle - _direction * arc * (1.0 - t)
 	points.append(Vector2.from_angle(angle) * radius)
-	colors.append(Color(TRAIL_COLOR, TRAIL_COLOR.a * t * strength))
+	colors.append(Color(Quality.glow(TRAIL_COLOR, TRAIL_GLOW_BOOST), TRAIL_COLOR.a * t * strength))

@@ -5,6 +5,7 @@ extends Area2D
 ## Needs an AnimatedSprite2D child named "Sprite" with a "run" animation.
 
 signal died(enemy: Enemy)
+signal damaged(enemy: Enemy, amount: float)
 
 const PLAYER_RADIUS := 7.0
 const HIT_FLASH_TIME := 0.08
@@ -13,6 +14,9 @@ const HIT_FLASH_MODULATE := Color(8.0, 8.0, 8.0)
 ## Knockback speed decays by this rate per second (exponential), so an
 ## impulse of speed v slides the enemy about v / rate pixels.
 const KNOCKBACK_DECAY := 10.0
+## Death pop: flash, squash and fade before the node is freed.
+const DEATH_TIME := 0.2
+const DEATH_SCALE := Vector2(1.5, 0.3)
 
 @export var move_speed: float = 45.0
 @export var max_health: float = 3.0
@@ -55,12 +59,28 @@ func _physics_process(delta: float) -> void:
 func take_damage(amount: float) -> void:
 	if health <= 0.0:
 		return
+	var dealt := minf(amount, health)
 	health -= amount
+	damaged.emit(self, dealt)
 	_hit_flash = HIT_FLASH_TIME
 	_sprite.modulate = HIT_FLASH_MODULATE
 	if health <= 0.0:
-		died.emit(self)
-		queue_free()
+		_die()
+
+
+## Leaves every gameplay group and stops colliding at once, so targeting,
+## bolts and the alive count ignore the corpse while the death pop plays.
+func _die() -> void:
+	died.emit(self)
+	for group in get_groups():
+		if not String(group).begins_with("_"):
+			remove_from_group(group)
+	set_deferred(&"monitorable", false)
+	set_physics_process(false)
+	var tween := create_tween().set_parallel()
+	tween.tween_property(_sprite, ^"scale", DEATH_SCALE, DEATH_TIME).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_sprite, ^"modulate", Color(HIT_FLASH_MODULATE, 0.0), DEATH_TIME)
+	tween.chain().tween_callback(queue_free)
 
 
 ## Pushes the enemy with [param impulse] (px/s), fading out quickly.

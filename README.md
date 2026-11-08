@@ -14,6 +14,8 @@ Grab the zip for your system from [Releases](https://github.com/Unwin41/shiftbor
 - **macOS:** open `Shiftborn.app`. If macOS blocks it, go to **System Settings > Privacy & Security** and click **Open Anyway**. Or run `xattr -dr com.apple.quarantine Shiftborn.app` in Terminal.
 - **Linux:** run `./shiftborn.x86_64`. If it does not start, run `chmod +x shiftborn.x86_64` first.
 
+Desktop builds run with extra effects: HDR glow and a light on every bolt. The browser version turns these off to stay smooth. To try the browser settings on desktop, start the game with `-- --low-quality`.
+
 ## Controls
 
 | Action | Keyboard | Gamepad |
