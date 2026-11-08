@@ -188,6 +188,12 @@ SOUNDS = (
         Voice("square", 700, slide=-4.0, duty=0.4, sustain=0.05, decay=0.12, lowpass=0.5),
         Voice("noise", 400, slide=-2.0, sustain=0.03, decay=0.1, lowpass=0.3, volume=0.4),
     ), seed=52),
+    # Perfect shift: a bright rising chime over a soft whoosh.
+    Sound("perfect_shift", (
+        Voice("square", 784, duty=0.25, sustain=0.18, decay=0.25, arpeggio=(1.0, 1.25, 1.5, 2.0), lowpass=0.65),
+        Voice("triangle", 1568, slide=0.5, sustain=0.15, decay=0.3, volume=0.5),
+        Voice("noise", 2500, slide=-2.0, attack=0.02, sustain=0.05, decay=0.25, lowpass=0.3, volume=0.35),
+    ), seed=54),
     Sound("shift_burst", (
         Voice("noise", 200, slide=-1.5, sustain=0.04, decay=0.35, punch=0.8, lowpass=0.3),
         Voice("sine", 110, slide=-2.0, sustain=0.05, decay=0.3, volume=0.8),

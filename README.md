@@ -30,6 +30,7 @@ Attacks are automatic. Mini-bosses arrive at 1:45 (a cyclops demon) and 3:15 (a 
 Why shift:
 - **Resistances.** Skulls shrug off magic and spirits shrug off the axe: the wrong form deals only 25% damage (grey numbers). The diamond above an enemy shows the color of the form that beats it.
 - **Energy.** The active form tires and its damage drops to half; the resting form recovers twice as fast. The bars at the bottom show both.
+- **Perfect shift.** Shift just as an enemy or a bolt is about to hit you: time slows, you are briefly invulnerable and the new form gets a burst of energy. Once every 2 seconds.
 
 ## Horde Kit addon
 

@@ -9,6 +9,8 @@ signal health_changed(current: float, maximum: float)
 signal died
 ## A noticeable hit landed on the player (rate limited). Main adds hitstop.
 signal hurt_feedback
+## The player shifted just before a hit; see [PerfectShift].
+signal perfect_shifted
 
 enum Form { KNIGHT, MAGE }
 
@@ -47,6 +49,9 @@ const CRIT_MULTIPLIER := 2.0
 const DEATH_TIME := 0.6
 const DEATH_SCALE := Vector2(1.8, 0.2)
 const DEATH_FLASH := Color(8.0, 8.0, 8.0)
+## Invulnerable: the sprite blinks between these every BLINK_TIME seconds.
+const INVULNERABLE_TINT := Color(1.8, 1.8, 2.2)
+const INVULNERABLE_BLINK_TIME := 0.06
 
 @export var move_speed: float = 110.0
 @export var max_health: float = 10.0
@@ -95,6 +100,8 @@ var _hurt_feedback_timer: float = 0.0
 var _light_base_energy: float = 0.0
 var _light_time: float = 0.0
 var _energy := FormEnergy.new()
+var _perfect := PerfectShift.new()
+var _invulnerable_time: float = 0.0
 ## Blades that already hit each enemy this spin (instance id -> bitmask).
 var _sword_hits: Dictionary[int, int] = {}
 
@@ -122,6 +129,8 @@ func _physics_process(delta: float) -> void:
 	_hurt_feedback_timer = maxf(_hurt_feedback_timer - delta, 0.0)
 	_update_light(delta)
 	_energy.tick(form, delta)
+	_perfect.tick(delta)
+	_update_invulnerability(delta)
 	_update_hurt_flash(delta)
 	if regen_per_second > 0.0:
 		heal(regen_per_second * delta)
@@ -137,6 +146,7 @@ func _physics_process(delta: float) -> void:
 
 
 func shift() -> void:
+	var perfect := _perfect.try_trigger(_in_danger())
 	form = Form.MAGE if form == Form.KNIGHT else Form.KNIGHT
 	AudioManager.play(&"shift_to_mage" if form == Form.MAGE else &"shift_to_warrior")
 	_shift_timer = shift_cooldown
@@ -148,10 +158,44 @@ func shift() -> void:
 	create_tween().tween_property(_sprite, "scale", Vector2.ONE, SHIFT_POP_TIME) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	form_changed.emit(form)
+	if perfect:
+		make_invulnerable(PerfectShift.INVULNERABLE_TIME)
+		_energy.restore(form, PerfectShift.ENERGY_REFUND)
+		AudioManager.play(&"perfect_shift")
+		perfect_shifted.emit()
+
+
+func make_invulnerable(seconds: float) -> void:
+	_invulnerable_time = maxf(_invulnerable_time, seconds)
+
+
+func is_invulnerable() -> bool:
+	return _invulnerable_time > 0.0
+
+
+## True when an enemy or an enemy bolt is touching the player or about to.
+func _in_danger() -> bool:
+	if not is_inside_tree():
+		return false
+	for enemy in get_tree().get_nodes_in_group(enemy_group):
+		if enemy is Enemy and PerfectShift.is_threat(global_position, enemy.global_position, enemy.body_radius):
+			return true
+	for bolt in get_tree().get_nodes_in_group(EnemyBolt.GROUP):
+		if PerfectShift.is_threat(global_position, bolt.global_position, EnemyBolt.RADIUS):
+			return true
+	return false
+
+
+func _update_invulnerability(delta: float) -> void:
+	if _invulnerable_time <= 0.0:
+		return
+	_invulnerable_time = maxf(_invulnerable_time - delta, 0.0)
+	var blink_on := int(_invulnerable_time / INVULNERABLE_BLINK_TIME) % 2 == 0
+	_sprite.modulate = INVULNERABLE_TINT if blink_on and _invulnerable_time > 0.0 else Color.WHITE
 
 
 func take_damage(amount: float) -> void:
-	if is_dead or amount <= 0.0:
+	if is_dead or amount <= 0.0 or is_invulnerable():
 		return
 	health = maxf(health - amount, 0.0)
 	_hurt_flash = HURT_FLASH_TIME

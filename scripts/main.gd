@@ -29,6 +29,8 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 ## Real seconds between the run ending and the results screen, so the
 ## death or the boss's fall plays out first.
 const RESULTS_DELAY := 1.2
+## "PERFECT" appears this far from the player, above the head.
+const PERFECT_POPUP_OFFSET := Vector2(0, -14)
 
 @onready var player: Player = $Player
 @onready var spawner: HordeSpawner = $HordeSpawner
@@ -66,6 +68,7 @@ func _ready() -> void:
 	_hitstop = Hitstop.new()
 	add_child(_hitstop)
 	player.hurt_feedback.connect(_hitstop.trigger.bind(HURT_HITSTOP))
+	player.perfect_shifted.connect(_on_perfect_shift)
 	_apply_quality()
 	AudioManager.play_music(AudioManager.RUN_MUSIC)
 	spawner.enemy_spawned.connect(_on_enemy_spawned)
@@ -228,6 +231,11 @@ func _on_upgrade_chosen(upgrade: Upgrade) -> void:
 	AudioManager.play(&"card_pick")
 	if upgrade_pool.apply(upgrade.id) > 0:
 		UpgradeEffects.apply(player, upgrade.id)
+
+
+func _on_perfect_shift() -> void:
+	_hitstop.slow_motion(PerfectShift.SLOW_TIME, PerfectShift.SLOW_SCALE)
+	damage_numbers.spawn_text(player.global_position + PERFECT_POPUP_OFFSET, PerfectShift.POPUP_TEXT, PerfectShift.POPUP_COLOR)
 
 
 func _on_player_died() -> void:

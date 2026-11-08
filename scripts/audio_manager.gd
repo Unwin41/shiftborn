@@ -35,6 +35,7 @@ const SOUNDS := {
 	&"player_death": {variants = 1, volume_db = -2.0, voices = 1, interval_ms = 0, pitch = 1.0},
 	&"shift_to_mage": {variants = 1, volume_db = -8.0, voices = 2, interval_ms = 0, pitch = 1.03},
 	&"shift_to_warrior": {variants = 1, volume_db = -8.0, voices = 2, interval_ms = 0, pitch = 1.03},
+	&"perfect_shift": {variants = 1, volume_db = -4.0, voices = 1, interval_ms = 0, pitch = 1.0},
 	&"shift_burst": {variants = 1, volume_db = -4.0, voices = 2, interval_ms = 0, pitch = 1.05},
 	&"boss_roar": {variants = 1, volume_db = -2.0, voices = 1, interval_ms = 500, pitch = 1.0},
 	&"boss_swap": {variants = 1, volume_db = -4.0, voices = 1, interval_ms = 0, pitch = 1.0},

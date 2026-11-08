@@ -65,6 +65,17 @@ func spawn(at: Vector2, amount: float, resisted: bool = false, crit: bool = fals
 		_sizes.append(FONT_SIZE)
 
 
+## A word instead of a number, e.g. "PERFECT" over the player.
+func spawn_text(at: Vector2, text: String, color: Color, font_size: int = CRIT_FONT_SIZE) -> void:
+	if _positions.size() >= max_active:
+		_remove_oldest()
+	_positions.append(at + START_OFFSET)
+	_texts.append(text.to_upper())
+	_ages.append(0.0)
+	_colors.append(color)
+	_sizes.append(font_size)
+
+
 func size_of_newest() -> int:
 	return _sizes[_sizes.size() - 1] if not _sizes.is_empty() else FONT_SIZE
 
@@ -102,7 +113,7 @@ func _draw() -> void:
 		var t := _ages[i] / LIFETIME
 		var alpha := 1.0 - t * t
 		var line := _line_for(_texts[i], _sizes[i])
-		var at := _positions[i] + Vector2(-TEXT_WIDTH * 0.5, -RISE * t - line.get_line_ascent())
+		var at := _positions[i] + Vector2(-line.width * 0.5, -RISE * t - line.get_line_ascent())
 		line.draw_outline(canvas, at, OUTLINE_SIZE, Color(OUTLINE_COLOR, OUTLINE_COLOR.a * alpha))
 		line.draw(canvas, at, Color(_colors[i], alpha))
 
@@ -116,7 +127,8 @@ func _line_for(text: String, font_size: int = FONT_SIZE) -> TextLine:
 		_lines.clear()
 	line = TextLine.new()
 	line.add_string(text, FONT, font_size)
-	line.width = TEXT_WIDTH
+	# Numbers share one width; longer words ("PERFECT") get their own.
+	line.width = maxf(TEXT_WIDTH, line.get_size().x)
 	line.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_lines[key] = line
 	return line

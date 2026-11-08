@@ -23,6 +23,11 @@ func damage_multiplier(form: Player.Form) -> float:
 	return lerpf(MIN_DAMAGE, 1.0, _levels[form])
 
 
+## Adds [param amount] (0..1) of energy to [param form], up to full.
+func restore(form: Player.Form, amount: float) -> void:
+	_levels[form] = clampf(_levels[form] + amount, 0.0, 1.0)
+
+
 ## Drains [param active] and recovers the other form over [param delta] seconds.
 func tick(active: Player.Form, delta: float) -> void:
 	for form in _levels.size():

@@ -37,6 +37,7 @@ func _run() -> void:
 	var kills_as_mage := await _kills_during(main, SECONDS_PER_PHASE)
 	_check(kills_as_mage > 0, "mage killed nothing")
 	_check(main.experience.level > 1, "never leveled up")
+	_check_perfect_shift(player, spawner)
 	_check(not paused, "tree still paused after the run")
 	print("smoke: elapsed %.1fs, alive %d, knight kills %d, mage kills %d, hp %.1f, level %d" % [
 		spawner.elapsed, spawner.alive_count(), kills_as_knight, kills_as_mage, player.health,
@@ -81,6 +82,20 @@ func _check_boss(main: Run, player: Player) -> void:
 	_check(main.results_screen.visible, "results screen not shown after the run")
 	_check(main.results_screen.title() == "YOU WIN", "results title is %s" % main.results_screen.title())
 	_check(main.results_screen.upgrade_slot_count() > 0, "results list no upgrades")
+
+
+## An enemy right on the player makes the next shift perfect.
+func _check_perfect_shift(player: Player, spawner: HordeSpawner) -> void:
+	var enemies := get_nodes_in_group(spawner.enemy_group)
+	_check(not enemies.is_empty(), "no enemy for the perfect shift check")
+	if enemies.is_empty():
+		return
+	(enemies[0] as Node2D).global_position = player.global_position + Vector2(4, 0)
+	var perfects := [0]
+	player.perfect_shifted.connect(func() -> void: perfects[0] += 1)
+	player.shift()
+	_check(perfects[0] == 1, "shift next to an enemy was not perfect")
+	_check(player.is_invulnerable(), "perfect shift gave no invulnerability")
 
 
 ## The title builds its menu and leaves the tree unpaused.
