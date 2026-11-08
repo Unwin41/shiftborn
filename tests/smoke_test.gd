@@ -37,6 +37,7 @@ func _run() -> void:
 		main.experience.level])
 	for error in _errors:
 		printerr("SMOKE FAIL: ", error)
+	await AudioManager.shutdown()
 	quit(1 if not _errors.is_empty() else 0)
 
 

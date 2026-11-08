@@ -23,6 +23,7 @@ Desktop builds run with extra effects: HDR glow and a light on every bolt. The b
 | Move | WASD / arrow keys | Left stick / D-pad |
 | Shift form | Space / Shift | A / RB |
 | Restart | R / Enter | Start |
+| Mute | M | |
 
 Attacks are automatic. Survive 10 minutes.
 

@@ -12,6 +12,7 @@ func _enter_tree() -> void:
 	_add_action(&"move_down", [KEY_S, KEY_DOWN], [JOY_BUTTON_DPAD_DOWN], JOY_AXIS_LEFT_Y, 1.0)
 	_add_action(&"shift_form", [KEY_SPACE, KEY_SHIFT], [JOY_BUTTON_A, JOY_BUTTON_RIGHT_SHOULDER])
 	_add_action(&"restart", [KEY_R, KEY_ENTER], [JOY_BUTTON_START])
+	_add_action(&"mute", [KEY_M], [])
 
 
 func _add_action(action: StringName, keys: Array[int], buttons: Array[int], axis: int = -1, axis_direction: float = 0.0) -> void:

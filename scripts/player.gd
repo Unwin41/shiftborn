@@ -124,6 +124,7 @@ func _physics_process(delta: float) -> void:
 
 func shift() -> void:
 	form = Form.MAGE if form == Form.KNIGHT else Form.KNIGHT
+	AudioManager.play(&"shift_to_mage" if form == Form.MAGE else &"shift_to_warrior")
 	_shift_timer = shift_cooldown
 	_attack_timer = SHIFT_ATTACK_DELAY
 	_apply_form_visuals()
@@ -145,10 +146,12 @@ func take_damage(amount: float) -> void:
 	if health == 0.0:
 		is_dead = true
 		_shake(DEATH_TRAUMA)
+		AudioManager.play(&"player_death")
 		died.emit()
 	elif _hurt_feedback_timer == 0.0:
 		_hurt_feedback_timer = HURT_FEEDBACK_COOLDOWN
 		_shake(HURT_TRAUMA)
+		AudioManager.play(&"player_hurt")
 		hurt_feedback.emit()
 
 
@@ -226,6 +229,7 @@ func _attack() -> void:
 func _knight_pulse() -> void:
 	_sword_hits.clear()
 	_sword.spin()
+	AudioManager.play(&"axe_swing")
 
 
 ## Hits enemies in range whose direction a blade just swept over.
@@ -255,6 +259,7 @@ func _sword_hit(enemy: Node2D, offset: Vector2) -> void:
 	if knockback > 0.0 and enemy.has_method("knockback"):
 		enemy.knockback(offset.normalized() * knockback)
 	enemy.take_damage(knight_damage)
+	AudioManager.play(&"axe_hit")
 	heal(lifesteal)
 
 
@@ -263,6 +268,7 @@ func _shift_burst() -> void:
 		return
 	_burst_timer = SHIFT_BURST_COOLDOWN
 	add_child(ShiftBurstFx.create(SHIFT_BURST_RADIUS))
+	AudioManager.play(&"shift_burst")
 	_shake(SHIFT_BURST_TRAUMA)
 	for node in get_tree().get_nodes_in_group(enemy_group):
 		var enemy := node as Node2D
@@ -276,6 +282,7 @@ func _mage_bolt() -> void:
 	if target == null:
 		return
 	var aim := global_position.direction_to(target.global_position)
+	AudioManager.play(&"bolt_cast")
 	for i in bolt_count:
 		var bolt := BOLT_SCENE.instantiate() as Bolt
 		bolt.direction = aim.rotated((i - (bolt_count - 1) * 0.5) * MULTISHOT_SPREAD)

@@ -82,15 +82,17 @@ jobs:
           name: macos
           path: build/macos
 
+      # The web build goes live only with a release tag, together with the
+      # downloadable builds, so work in progress on main stays private.
       - name: Upload Pages artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
   pages:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

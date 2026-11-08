@@ -72,6 +72,7 @@ func take_damage(amount: float) -> void:
 ## bolts and the alive count ignore the corpse while the death pop plays.
 func _die() -> void:
 	died.emit(self)
+	AudioManager.play(&"enemy_death")
 	for group in get_groups():
 		if not String(group).begins_with("_"):
 			remove_from_group(group)

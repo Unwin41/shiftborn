@@ -114,6 +114,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		choose(index)
 
 
+## Focus moves by keyboard, gamepad or mouse; the first card's automatic
+## focus on open happens during the input grace and stays silent.
+func _on_card_focused() -> void:
+	if _accepting_input:
+		AudioManager.play(&"ui_move")
+
+
 func _on_card_pressed(index: int) -> void:
 	if _accepting_input:
 		choose(index)
@@ -162,6 +169,7 @@ func _make_card(upgrade: Upgrade, current_level: int, index: int) -> Button:
 	card.add_theme_stylebox_override(&"focus", _focus_style())
 	card.pressed.connect(_on_card_pressed.bind(index))
 	card.mouse_entered.connect(card.grab_focus)
+	card.focus_entered.connect(_on_card_focused)
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, CARD_PADDING)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER

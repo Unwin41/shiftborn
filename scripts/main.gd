@@ -39,6 +39,7 @@ func _ready() -> void:
 	player.hurt_feedback.connect(_hitstop.trigger.bind(HURT_HITSTOP))
 	add_child(_hitstop)
 	_apply_quality()
+	AudioManager.play_music(AudioManager.RUN_MUSIC)
 	spawner.enemy_spawned.connect(_on_enemy_spawned)
 	center_label.hide()
 	_rng.randomize()
@@ -58,6 +59,7 @@ func _process(_delta: float) -> void:
 	]
 	xp_bar.set_progress(experience.level, experience.progress())
 	if not _run_over and spawner.elapsed >= RUN_LENGTH:
+		AudioManager.play(&"run_win")
 		_end_run("YOU SURVIVED")
 
 
@@ -108,12 +110,14 @@ func _open_level_up() -> void:
 		_level_up_active = true
 		get_tree().paused = true
 		level_up_menu.open(offers, levels)
+		AudioManager.play(&"level_up")
 		return
 	_level_up_active = false
 	get_tree().paused = false
 
 
 func _on_upgrade_chosen(upgrade: Upgrade) -> void:
+	AudioManager.play(&"card_pick")
 	if upgrade_pool.apply(upgrade.id) > 0:
 		UpgradeEffects.apply(player, upgrade.id)
 
@@ -124,6 +128,7 @@ func _on_player_died() -> void:
 
 
 func _end_run(title: String) -> void:
+	AudioManager.stop_music(1.5)
 	_run_over = true
 	_pending_level_ups = 0
 	_level_up_active = false
